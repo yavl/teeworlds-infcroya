@@ -16,7 +16,6 @@ private:
 	std::array<CroyaPlayer*, 64> players{};
 	std::unordered_map<int, class IClass*> classes;
 	class Geolocation* geolocation;
-	class CGameWorld* m_pGameWorld;
 	std::vector<int> humans;
 	class LuaLoader* lua;
 	std::vector<class CCircle*> circles;

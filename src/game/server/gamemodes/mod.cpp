@@ -37,7 +37,6 @@ CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
 #ifdef CONF_GEOLOCATION
 	geolocation = new Geolocation("mmdb/GeoLite2-Country.mmdb");
 #endif
-	m_pGameWorld = nullptr;
 	IGameController::m_MOD = this; // temporarily, todo: avoid this
 	lua = nullptr;
 
@@ -134,7 +133,7 @@ void CGameControllerMOD::OnRoundStart()
 			const int TILE_SIZE = 32;
 			int x = positions[i].x * TILE_SIZE;
 			int y = positions[i].y * TILE_SIZE;
-			circles.push_back(new CCircle(m_pGameWorld, vec2(x, y), -1, radiuses[i], min_radiuses[i], shrink_speeds[i]));
+			circles.push_back(new CCircle(&GameServer()->m_World, vec2(x, y), -1, radiuses[i], min_radiuses[i], shrink_speeds[i]));
 		}
 
 		// infection zone circles
@@ -145,7 +144,7 @@ void CGameControllerMOD::OnRoundStart()
 			const int TILE_SIZE = 32;
 			int x = inf_positions[i].x * TILE_SIZE;
 			int y = inf_positions[i].y * TILE_SIZE;
-			inf_circles.push_back(new CInfCircle(m_pGameWorld, vec2(x, y), -1, inf_radiuses[i]));
+			inf_circles.push_back(new CInfCircle(&GameServer()->m_World, vec2(x, y), -1, inf_radiuses[i]));
 		}
 	}
 	m_InfectedStarted = true;
@@ -405,9 +404,6 @@ void CGameControllerMOD::OnCharacterSpawn(CCharacter* pChr)
 
 	players[ClientID]->SetCharacter(pChr);
 	players[ClientID]->OnCharacterSpawn(pChr);
-	if (!m_pGameWorld) {
-		m_pGameWorld = pChr->GameWorld();
-	}
 
 	if (pChr->IsZombie() && GetZombieCount() == 1) {
 		pChr->IncreaseArmor(10); // +10 armor for lonely zombie
