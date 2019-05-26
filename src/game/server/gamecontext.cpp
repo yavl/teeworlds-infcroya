@@ -511,6 +511,24 @@ void CGameContext::OnTick()
 		}
 	}
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+	// Clean old dots
+	int DotIter;
+
+	DotIter = 0;
+	while (DotIter < m_LaserDots.size())
+	{
+		m_LaserDots[DotIter].m_LifeSpan--;
+		if (m_LaserDots[DotIter].m_LifeSpan <= 0)
+		{
+			Server()->SnapFreeID(m_LaserDots[DotIter].m_SnapID);
+			m_LaserDots.remove_index(DotIter);
+		}
+		else
+			DotIter++;
+	}
+	// INFCROYA END ------------------------------------------------------------//
+
 	// update voting
 	if(m_VoteCloseTime)
 	{
