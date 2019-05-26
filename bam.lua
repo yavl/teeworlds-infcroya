@@ -85,6 +85,7 @@ function GenerateCommonSettings(settings, conf, arch, compiler)
 	end
 	if compiler == "gcc" or compiler == "clang" then
 		-- settings.cc.flags:Add("-Wall", "-fno-exceptions") -- INFCROYA RELATED
+		settings.cc.flags_cxx:Add("-g") -- INFCROYA RELATED
 		settings.cc.flags:Add("-Wall") -- INFCROYA RELATED
 		settings.cc.flags_cxx:Add("-std=c++11") -- INFCROYA RELATED
 	end
@@ -249,7 +250,6 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 		end
 		settings.cc.flags:Add("/wd4244", "/wd4577")
 	elseif compiler == "gcc" or config.compiler.driver == "clang" then
-		settings.cc.flags_cxx:Add("-g") -- INFCROYA RELATED
 		if target_arch ~= "x86" and target_arch ~= "x86_64" then
 			print("Unknown Architecture '" .. arch .. "'. Supported: x86, x86_64")
 			os.exit(1)

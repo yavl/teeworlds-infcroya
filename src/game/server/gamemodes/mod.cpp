@@ -62,7 +62,7 @@ CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
 			}
 		}
 	}
-	m_GrowingMap[56 * m_MapWidth + 23] = 6;
+	// m_GrowingMap[56 * m_MapWidth + 23] = 6; // hardcoded for infc_normandie
 
 	classes[Class::DEFAULT] = new CDefault();
 	classes[Class::BIOLOGIST] = new CBiologist();
@@ -140,6 +140,7 @@ void CGameControllerMOD::OnRoundStart()
 		// infection zone circles
 		auto inf_positions = lua->GetInfCirclePositions();
 		auto inf_radiuses = lua->GetInfCircleRadiuses();
+		m_GrowingMap[(int)inf_positions[0].y * m_MapWidth + (int)inf_positions[0].x] = 6; // final explosion start pos (?)
 		for (size_t i = 0; i < inf_positions.size(); i++) {
 			const int TILE_SIZE = 32;
 			int x = inf_positions[i].x * TILE_SIZE;
@@ -161,9 +162,13 @@ void CGameControllerMOD::Tick()
 
 	if (!IsCroyaWarmup() && IsEveryoneInfected() && !IsGameEnd() && m_InfectedStarted) {
 		int Seconds = (Server()->Tick() - m_GameStartTick) / ((float)Server()->TickSpeed());
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "Infected won the round in %d seconds", Seconds);
-		GameServer()->SendChatTarget(-1, aBuf);
+		for (CPlayer* each : GameServer()->m_apPlayers) {
+			if (!each)
+				continue;
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), Localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()), Seconds);
+			GameServer()->SendChatTarget(each->GetCID(), aBuf);
+		}
 		OnRoundEnd();
 	}
 
@@ -277,25 +282,30 @@ void CGameControllerMOD::Tick()
 			if (GameServer()->GetHumanCount())
 			{
 				int NumHumans = GameServer()->GetHumanCount();
-				char aBuf[256];
-				str_format(aBuf, sizeof(aBuf), "%d humans won the round", NumHumans);
-				GameServer()->SendChatTarget(-1, aBuf);
 
 				for (CPlayer* each : GameServer()->m_apPlayers) {
 					if (!each)
 						continue;
+
+					char aBuf[256];
+					str_format(aBuf, sizeof(aBuf), Localize("%d humans won the round", each->GetCroyaPlayer()->GetLanguage()), NumHumans);
+					GameServer()->SendChatTarget(each->GetCID(), aBuf);
 					if (each->GetCroyaPlayer()->IsHuman())
 					{
-						GameServer()->SendChatTarget(-1, "You have survived, +5 points");
+						GameServer()->SendChatTarget(each->GetCID(), Localize("You have survived, +5 points", each->GetCroyaPlayer()->GetLanguage()));
 					}
 				}
 			}
 			else
 			{
 				int Seconds = g_Config.m_SvTimelimit * 60;
-				char aBuf[256];
-				str_format(aBuf, sizeof(aBuf), "Infected won the round in %d seconds", Seconds);
-				GameServer()->SendChatTarget(-1, aBuf);
+				for (CPlayer* each : GameServer()->m_apPlayers) {
+					if (!each)
+						continue;
+					char aBuf[256];
+					str_format(aBuf, sizeof(aBuf), Localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()), Seconds);
+					GameServer()->SendChatTarget(each->GetCID(), aBuf);
+				}
 			}
 			OnRoundEnd();
 		}
@@ -616,7 +626,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 	case 724: //Spain
 	case 858: //Uruguay
 	case 862: //Venezuela
-		// set to spanish
+		players[ClientID]->SetLanguage("spanish");
 		break;
 		/* fa - Farsi ************************************/
 	case 364: //Islamic Republic of Iran
@@ -636,7 +646,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 	case 768: //Togo
 	case 250: //France
 	case 492: //Monaco
-		// set to french
+		players[ClientID]->SetLanguage("french");
 		break;
 		/* hr - Croatian **********************************/
 	case 191: //Croatia
@@ -644,7 +654,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 		break;
 		/* hu - Hungarian *********************************/
 	case 348: //Hungary
-		// set to hungarian
+		players[ClientID]->SetLanguage("hungarian");
 		break;
 		/* it - Italian ***********************************/
 	case 380: //Italy
@@ -669,7 +679,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 		break;
 		/* pl - Polish *************************************/
 	case 616: //Poland
-		// set to polish
+		players[ClientID]->SetLanguage("polish");
 		break;
 		/* pt - Portuguese ********************************/
 	case 24: //Angola
@@ -707,7 +717,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 		break;
 		/* uk - Ukrainian **********************************/
 	case 804: //Ukraine
-		// set to ukrainian
+		players[ClientID]->SetLanguage("ukrainian");
 		break;
 		/* zh-Hans - Chinese (Simplified) **********************************/
 	case 156: //People’s Republic of China

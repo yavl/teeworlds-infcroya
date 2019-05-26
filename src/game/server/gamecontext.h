@@ -195,12 +195,16 @@ public:
 	virtual const char *NetVersion() const;
 
 	virtual const char *NetVersionHashUsed() const;
-	virtual const char *NetVersionHashReal() const;// INFCROYA BEGIN ------------------------------------------------------------
+	virtual const char *NetVersionHashReal() const;
+	// INFCROYA BEGIN ------------------------------------------------------------
+	// CGameContext::SendCommand() copied from github.com/AssassinTee/catch64
+	void SendCommand(int ChatterClientID, const std::string& command);
 	void CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan);
 	void SendChatTarget(int To, const char* pText);
 	int GetHumanCount() const;
 	int GetZombieCount() const;
-	// INFCROYA END ------------------------------------------------------------//};
+	// INFCROYA END ------------------------------------------------------------//
+};
 
 inline int64 CmaskAll() { return -1; }
 inline int64 CmaskOne(int ClientID) { return (int64)1<<ClientID; }

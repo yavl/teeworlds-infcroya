@@ -20,6 +20,11 @@
 #include "gamemodes/tdm.h"
 #include "gamecontext.h"
 #include "player.h"
+// INFCROYA BEGIN ------------------------------------------------------------
+#include <infcroya/localization/localization.h>
+#include <sstream>
+#include <vector>
+// INFCROYA END ------------------------------------------------------------//
 
 enum
 {
@@ -211,6 +216,24 @@ void CGameContext::SendChat(int ChatterClientID, int Mode, int To, const char *p
 
 	Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, aBufMode, aBuf);
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		// copied from github.com/AssassinTee/catch64
+		if (Mode == CHAT_ALL && (pText[0] == '!' || pText[0] == '/'))
+		{
+			const std::vector<std::string> commands = { "cmdlist", "info", "help", "top5", "rank" };
+			for (auto it = commands.begin(); it != commands.end(); ++it)
+			{
+				if (!str_comp(pText, ("!" + (*it)).c_str()) || !str_comp(pText, ("/" + (*it)).c_str()))
+				{
+					//Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ChatterClientID);
+					SendCommand(ChatterClientID, *it);
+					return;
+				}
+			}
+		}
+	}
+	// INFCROYA END ------------------------------------------------------------//
 
 	CNetMsg_Sv_Chat Msg;
 	Msg.m_Mode = Mode;
@@ -1602,6 +1625,48 @@ const char *CGameContext::NetVersionHashReal() const { return GAME_NETVERSION_HA
 IGameServer *CreateGameServer() { return new CGameContext; }
 
 // INFCROYA BEGIN ------------------------------------------------------------
+// CGameContext::SendCommand() copied from github.com/AssassinTee/catch64
+void CGameContext::SendCommand(int ChatterClientID, const std::string& command)
+{
+	std::vector<std::string> messageList;
+	if (command == "cmdlist")
+	{
+		messageList.push_back("-- Commands --");
+		messageList.push_back("'/cmdlist'- show commands");
+		messageList.push_back("'/help' - show help");
+		messageList.push_back("'/info' - show mod information");
+	}
+	else if (command == "help")
+	{
+		messageList.push_back("-- Help --");
+		messageList.push_back("Infection mod");
+		messageList.push_back("Run away from zombies (greens) as a human");
+		messageList.push_back("Infect humans as a zombie");
+		messageList.push_back("More fun to play with friends ;)");
+	}
+	else if (command == "info")
+	{
+		messageList.push_back("-- Info --");
+		messageList.push_back("InfCroya");
+		messageList.push_back("InfClass with battle royale circles");
+		messageList.push_back("Thanks to: All InfClass & InfClassR contributors and Assa for chat commands");
+		messageList.push_back("Sources: https://github.com/yavl/teeworlds-infcroya");
+		std::stringstream ss;
+		ss << "Teeworlds version: '" << GAME_RELEASE_VERSION << "', Compiled: '" << __DATE__ << "'";
+		messageList.push_back(ss.str());
+	}
+	CNetMsg_Sv_Chat Msg;
+	Msg.m_Mode = CHAT_ALL;
+	Msg.m_ClientID = -1;
+
+	Msg.m_TargetID = ChatterClientID;
+	for (auto it = messageList.begin(); it != messageList.end(); ++it)
+	{
+		Msg.m_pMessage = it->c_str();
+		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ChatterClientID);
+	}
+}
+
 void CGameContext::CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan)
 {
 	CGameContext::LaserDotState State;
