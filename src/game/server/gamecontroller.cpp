@@ -9,6 +9,11 @@
 #include "gamecontext.h"
 #include "gamecontroller.h"
 #include "player.h"
+// INFCROYA BEGIN ------------------------------------------------------------
+#include <infcroya/croyaplayer.h>
+#include <infcroya/classes/class.h>
+#include <game/server/gamemodes/mod.h>
+// INFCROYA END ------------------------------------------------------------//
 
 
 IGameController::IGameController(CGameContext *pGameServer)
@@ -569,6 +574,7 @@ void IGameController::SetGameState(EGameState GameState, int Timer)
 		// only possible when game, pause or start countdown is running
 		if(m_GameState == IGS_GAME_RUNNING || m_GameState == IGS_GAME_PAUSED || m_GameState == IGS_START_COUNTDOWN)
 		{
+			m_GameStateTimer = 0*Server()->TickSpeed(); // INFCROYA RELATED
 			if(g_Config.m_SvCountdown == 0 && m_GameFlags&GAMEFLAG_SURVIVAL)
 			{
 				m_GameState = GameState;
@@ -586,8 +592,7 @@ void IGameController::SetGameState(EGameState GameState, int Timer)
 			{
 				// no countdown, start new match right away
 				SetGameState(IGS_GAME_RUNNING);
-			}
-		}
+			}		}
 		break;
 	case IGS_GAME_RUNNING:
 		// always possible
@@ -660,6 +665,13 @@ void IGameController::StartMatch()
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "start match type='%s' teamplay='%d'", m_pGameType, m_GameFlags&GAMEFLAG_TEAMS);
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+	// INFCROYA BEGIN ------------------------------------------------------------
+	for (CroyaPlayer* cp : m_MOD->GetCroyaPlayers()) {
+		if (cp) {
+			cp->SetClassNum(Class::DEFAULT);
+		}
+	}
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void IGameController::StartRound()
@@ -673,6 +685,13 @@ void IGameController::StartRound()
 		SetGameState(IGS_START_COUNTDOWN);
 	else
 		SetGameState(IGS_WARMUP_GAME, TIMER_INFINITE);
+	// INFCROYA BEGIN ------------------------------------------------------------
+	for (CroyaPlayer* cp : m_MOD->GetCroyaPlayers()) {
+		if (cp) {
+			cp->SetClassNum(Class::DEFAULT);
+		}
+	}
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void IGameController::SwapTeamscore()
@@ -1214,3 +1233,43 @@ int IGameController::GetStartTeam()
 	}
 	return TEAM_SPECTATORS;
 }
+
+// INFCROYA BEGIN ------------------------------------------------------------
+bool IGameController::IsSpawnable(vec2 Pos)
+{
+	//First check if there is a tee too close
+	CCharacter* aEnts[MAX_CLIENTS];
+	int Num = GameServer()->m_World.FindEntities(Pos, 64, (CEntity * *)aEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
+
+	for (int c = 0; c < Num; ++c)
+	{
+		if (distance(aEnts[c]->GetPos(), Pos) <= 60)
+			return false;
+	}
+
+	//Check the center
+	if (GameServer()->Collision()->CheckPoint(Pos))
+		return false;
+
+	//Check the border of the tee. Kind of extrem, but more precise
+	for (int i = 0; i < 16; i++)
+	{
+		float Angle = i * (2.0f * pi / 16.0f);
+		vec2 CheckPos = Pos + vec2(cos(Angle), sin(Angle)) * 30.0f;
+		if (GameServer()->Collision()->CheckPoint(CheckPos))
+			return false;
+	}
+
+	return true;
+}
+
+bool IGameController::IsGameEnd() const
+{
+	return (m_GameState == IGS_END_MATCH) || (m_GameState == IGS_END_ROUND);
+}
+
+bool IGameController::IsWarmup() const
+{
+	return (m_GameState == IGS_WARMUP_USER) || (m_GameState == IGS_WARMUP_GAME);
+}
+// INFCROYA END ------------------------------------------------------------//

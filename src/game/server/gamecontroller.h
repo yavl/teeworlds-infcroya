@@ -6,6 +6,10 @@
 #include <base/vmath.h>
 
 #include <generated/protocol.h>
+// INFCROYA BEGIN ------------------------------------------------------------
+#include <array>
+#include <engine/shared/config.h>
+// INFCROYA END ------------------------------------------------------------//
 
 /*
 	Class: Game Controller
@@ -102,8 +106,8 @@ protected:
 	int m_SuddenDeath;
 	int m_aTeamscore[NUM_TEAMS];
 
-	void EndMatch() { SetGameState(IGS_END_MATCH, TIMER_END); }
-	void EndRound() { SetGameState(IGS_END_ROUND, TIMER_END/2); }
+	void EndMatch() { SetGameState(IGS_END_MATCH, g_Config.m_InfShowScoreTime); } // INFCROYA RELATED
+	void EndRound() { SetGameState(IGS_END_ROUND, g_Config.m_InfShowScoreTime); } // INFCROYA RELATED
 
 	// info
 	int m_GameFlags;
@@ -159,8 +163,8 @@ public:
 	*/
 	virtual bool OnEntity(int Index, vec2 Pos);
 
-	void OnPlayerConnect(class CPlayer *pPlayer);
-	void OnPlayerDisconnect(class CPlayer *pPlayer);
+	virtual void OnPlayerConnect(class CPlayer *pPlayer); // INFCROYA RELATED
+	virtual void OnPlayerDisconnect(class CPlayer *pPlayer); // INFCROYA RELATED
 	void OnPlayerInfoChange(class CPlayer *pPlayer);
 	void OnPlayerReadyChange(class CPlayer *pPlayer);
 
@@ -189,7 +193,7 @@ public:
 
 	// info
 	void CheckGameInfo();
-	bool IsFriendlyFire(int ClientID1, int ClientID2) const;
+	virtual bool IsFriendlyFire(int ClientID1, int ClientID2) const; // INFCROYA RELATED
 	bool IsGamePaused() const { return m_GameState == IGS_GAME_PAUSED || m_GameState == IGS_START_COUNTDOWN; }
 	bool IsGameRunning() const { return m_GameState == IGS_GAME_RUNNING; }
 	bool IsPlayerReadyMode() const;
@@ -214,6 +218,14 @@ public:
 	
 	int GetRealPlayerNum() const { return m_aTeamSize[TEAM_RED]+m_aTeamSize[TEAM_BLUE]; }
 	int GetStartTeam();
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	bool IsSpawnable(vec2 Pos);
+	bool IsWarmup() const;
+	bool IsGameEnd() const;
+	std::array<class CroyaPlayer*, 64> m_pCroyaPlayers{};
+	class CGameControllerMOD* m_MOD;
+	// INFCROYA END ------------------------------------------------------------//
 };
 
 #endif

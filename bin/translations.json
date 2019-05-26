@@ -1,0 +1,57 @@
+{
+"translated strings": [
+	{
+		"context": "russian",
+		"or": "Random choice",
+		"tr": "Случайный выбор"
+	},
+	{
+		"context": "russian",
+		"or": "Biologist",
+		"tr": "Биолог"
+	},
+	{
+		"context": "russian",
+		"or": "Smoker",
+		"tr": "Курильщик"
+	},
+	{
+		"context": "russian",
+		"or": "Medic",
+		"tr": "Медик"
+	},
+	{
+		"context": "russian",
+		"or": "Engineer",
+		"tr": "Инженер"
+	},
+	
+	
+	
+	{
+		"context": "german",
+		"or": "Random choice",
+		"tr": "Zufällige Auswahl"
+	},
+	{
+		"context": "german",
+		"or": "Biologist",
+		"tr": "Lebenskundler"
+	},
+	{
+		"context": "german",
+		"or": "Smoker",
+		"tr": "Raucher"
+	},
+	{
+		"context": "german",
+		"or": "Medic",
+		"tr": "Sanitäter"
+	},
+	{
+		"context": "german",
+		"or": "Engineer",
+		"tr": "Ingenieur"
+	},
+]
+}

@@ -13,11 +13,12 @@ config:Add(OptTestCompileC("buildwithoutsseflag", "#include <immintrin.h>\nint m
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
+config:Add(OptToggle("geolocation", true)) -- INFCROYA RELATED
 config:Finalize("config.lua")
 
 generated_src_dir = "build/src"
 generated_icon_dir = "build/icons"
-builddir = "build/%(arch)s/%(conf)s"
+builddir = "bin"
 content_src_dir = "datasrc/"
 
 -- data compiler
@@ -78,8 +79,14 @@ end
 
 
 function GenerateCommonSettings(settings, conf, arch, compiler)
+	if config.geolocation.value then
+		settings.cc.defines:Add("CONF_GEOLOCATION") -- INFCROYA RELATED
+		settings.link.libs:Add("maxminddb") -- INFCROYA RELATED
+	end
 	if compiler == "gcc" or compiler == "clang" then
-		settings.cc.flags:Add("-Wall", "-fno-exceptions")
+		-- settings.cc.flags:Add("-Wall", "-fno-exceptions") -- INFCROYA RELATED
+		settings.cc.flags:Add("-Wall") -- INFCROYA RELATED
+		settings.cc.flags_cxx:Add("-std=c++11") -- INFCROYA RELATED
 	end
 
 	-- Compile zlib if needed
@@ -104,6 +111,9 @@ function GenerateCommonSettings(settings, conf, arch, compiler)
 end
 
 function GenerateMacOSXSettings(settings, conf, arch, compiler)
+	settings.link.libs:Add("c++") -- INFCROYA RELATED
+	settings.cc.includes:Add("/usr/local/opt/lua/include/lua5.3/")
+	settings.link.libs:Add("lua5.3")
 	if arch == "x86" then
 		settings.cc.flags:Add("-arch i386")
 		settings.link.flags:Add("-arch i386")
@@ -169,6 +179,9 @@ function GenerateMacOSXSettings(settings, conf, arch, compiler)
 end
 
 function GenerateLinuxSettings(settings, conf, arch, compiler)
+	settings.cc.includes:Add("/usr/include/lua5.3/") -- INFCROYA RELATED, kind of hardcode
+	settings.link.libs:Add("lua5.3") -- INFCROYA RELATED, kind of hardcode
+	
 	if arch == "x86" then
 		if config.buildwithoutsseflag.value == false then
 			settings.cc.flags:Add("-msse2") -- for the _mm_pause call
@@ -218,7 +231,17 @@ function GenerateSolarisSettings(settings, conf, arch, compiler)
 end
 
 function GenerateWindowsSettings(settings, conf, target_arch, compiler)
+	settings.link.libs:Add("lua") -- INFCROYA RELATED
 	if compiler == "cl" then
+		-- INFCROYA BEGIN
+		settings.cc.includes:Add("other/infcroya/lua/include")
+		settings.link.libpath:Add("other/infcroya/lua/vc/lib32")
+		if config.geolocation then
+			settings.cc.includes:Add("other/infcroya/maxminddb/include")
+			settings.link.libpath:Add("other/infcroya/maxminddb/vc/lib32")
+			settings.link.libs:Add("maxminddb")
+		end
+		-- INFCROYA END //
 		if (target_arch == "x86" and arch ~= "ia32") or
 		   (target_arch == "x86_64" and arch ~= "ia64" and arch ~= "amd64") then
 			print("Cross compiling is unsupported on Windows.")
@@ -226,6 +249,7 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 		end
 		settings.cc.flags:Add("/wd4244", "/wd4577")
 	elseif compiler == "gcc" or config.compiler.driver == "clang" then
+		settings.cc.flags_cxx:Add("-g") -- INFCROYA RELATED
 		if target_arch ~= "x86" and target_arch ~= "x86_64" then
 			print("Unknown Architecture '" .. arch .. "'. Supported: x86, x86_64")
 			os.exit(1)
@@ -360,7 +384,15 @@ function BuildServer(settings, family, platform)
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
 	
-	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], server, game_server)
+	local infcroya = Compile(settings, Collect("src/infcroya/*.cpp", "src/infcroya/classes/*.cpp")) -- INFCROYA RELATED
+	local infcroya_entities = Compile(settings, Collect("src/infcroya/entities/*.cpp")) -- INFCROYA RELATED
+	local localization = Compile(settings, Collect("src/infcroya/localization/*.cpp", "src/infcroya/localization/json-parses/*.c")) -- INFCROYA RELATED
+	local lualoader = Compile(settings, Collect("src/infcroya/lualoader/*.cpp")) -- INFCROYA RELATED
+	if config.geolocation.value then
+		geolocation = Compile(settings, Collect("src/infcroya/geolocation/*.cpp", "src/infcroya/geolocation/GeoLite2PP/*.cpp")) -- INFCROYA RELATED
+	end
+	
+	return Link(settings, "server", libs["zlib"], libs["md5"], server, game_server, infcroya, infcroya_entities, localization, lualoader, geolocation) -- INFCROYA RELATED
 end
 
 function BuildTools(settings)
@@ -512,7 +544,7 @@ if ScriptArgs['builddir'] then
 	builddir = ScriptArgs['builddir']
 end
 
-targets = {client="teeworlds", server="teeworlds_srv",
+targets = {client="teeworlds", server="server",
            versionserver="versionsrv", masterserver="mastersrv",
            tools="pseudo_tools", content="content"}
 

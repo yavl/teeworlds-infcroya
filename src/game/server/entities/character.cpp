@@ -11,6 +11,20 @@
 #include "laser.h"
 #include "projectile.h"
 
+// INFCROYA BEGIN ------------------------------------------------------------
+#include <infcroya/croyaplayer.h>
+#include <infcroya/classes/class.h>
+#include <game/server/eventhandler.h>
+#include <infcroya/entities/engineer-wall.h>
+#include <infcroya/entities/biologist-mine.h>
+#include <infcroya/entities/soldier-bomb.h>
+#include <infcroya/entities/scientist-mine.h>
+#include <infcroya/entities/medic-grenade.h>
+#include <infcroya/entities/merc-bomb.h>
+#include <infcroya/entities/scatter-grenade.h>
+#include <game/server/gamemodes/mod.h>
+// INFCROYA END ------------------------------------------------------------//
+
 //input count
 struct CInputCount
 {
@@ -47,6 +61,25 @@ CCharacter::CCharacter(CGameWorld *pWorld)
 	m_Health = 0;
 	m_Armor = 0;
 	m_TriggeredEvents = 0;
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		m_Infected = false;
+		m_HeartID = Server()->SnapNewID();
+		m_FirstShot = true;
+		m_BarrierHintID = Server()->SnapNewID();
+		m_BarrierHintIDs.set_size(2);
+		for (int i = 0; i < 2; i++)
+		{
+			m_BarrierHintIDs[i] = Server()->SnapNewID();
+		}
+	}
+	
+	m_IsFrozen = false;
+	m_FrozenTime = -1;
+	m_PoisonTick = 0;
+	m_InAirTick = 0;
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void CCharacter::Reset()
@@ -56,6 +89,13 @@ void CCharacter::Reset()
 
 bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 {
+	// INFCROYA BEGIN ------------------------------------------------------------
+	SetNormalEmote(EMOTE_NORMAL);
+	m_IsFrozen = false;
+	m_FrozenTime = -1;
+	m_Poison = 0;
+	SetHookProtected(true); // both humans and zombies hook protected by default
+	// INFCROYA END ------------------------------------------------------------//
 	m_EmoteStop = -1;
 	m_LastAction = -1;
 	m_LastNoAmmoSound = -1;
@@ -87,6 +127,24 @@ void CCharacter::Destroy()
 {
 	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 	m_Alive = false;
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		if (m_HeartID >= 0) {
+			Server()->SnapFreeID(m_HeartID);
+			m_HeartID = -1;
+		}
+		if (m_BarrierHintID >= 0) {
+			Server()->SnapFreeID(m_BarrierHintID);
+			for (int i = 0; i < 2; i++)
+			{
+				if (m_BarrierHintIDs[i] >= 0) {
+					Server()->SnapFreeID(m_BarrierHintIDs[i]);
+				}
+			}
+		}
+	}
+	DestroyChildEntities();
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void CCharacter::SetWeapon(int W)
@@ -223,8 +281,14 @@ void CCharacter::HandleWeaponSwitch()
 		while(Next) // Next Weapon selection
 		{
 			WantedWeapon = (WantedWeapon+1)%NUM_WEAPONS;
-			if(m_aWeapons[WantedWeapon].m_Got)
+			if (m_aWeapons[WantedWeapon].m_Got) {
 				Next--;
+				// INFCROYA BEGIN ------------------------------------------------------------
+				if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+					GetCroyaPlayer()->OnMouseWheelDown();
+				}
+				// INFCROYA END ------------------------------------------------------------//
+			}
 		}
 	}
 
@@ -233,8 +297,14 @@ void CCharacter::HandleWeaponSwitch()
 		while(Prev) // Prev Weapon selection
 		{
 			WantedWeapon = (WantedWeapon-1)<0?NUM_WEAPONS-1:WantedWeapon-1;
-			if(m_aWeapons[WantedWeapon].m_Got)
+			if (m_aWeapons[WantedWeapon].m_Got) {
 				Prev--;
+				// INFCROYA BEGIN ------------------------------------------------------------
+				if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+					GetCroyaPlayer()->OnMouseWheelUp();
+				}
+				// INFCROYA END ------------------------------------------------------------//
+			}
 		}
 	}
 
@@ -258,8 +328,14 @@ void CCharacter::FireWeapon()
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
 	bool FullAuto = false;
-	if(m_ActiveWeapon == WEAPON_GRENADE || m_ActiveWeapon == WEAPON_SHOTGUN || m_ActiveWeapon == WEAPON_LASER)
+	if (m_ActiveWeapon == WEAPON_GRENADE || m_ActiveWeapon == WEAPON_SHOTGUN || m_ActiveWeapon == WEAPON_LASER)
 		FullAuto = true;
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		if (m_ActiveWeapon == WEAPON_GRENADE || m_ActiveWeapon == WEAPON_SHOTGUN || m_ActiveWeapon == WEAPON_LASER || m_ActiveWeapon == WEAPON_GUN) // INFCROYA RELATED
+			FullAuto = true;
+	}
+	// INFCROYA END ------------------------------------------------------------//
 
 
 	// check if we gonna fire
@@ -292,107 +368,149 @@ void CCharacter::FireWeapon()
 	{
 		case WEAPON_HAMMER:
 		{
-			// reset objects Hit
-			m_NumObjectsHit = 0;
-			GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
-
-			CCharacter *apEnts[MAX_CLIENTS];
-			int Hits = 0;
-			int Num = GameServer()->m_World.FindEntities(ProjStartPos, GetProximityRadius()*0.5f, (CEntity**)apEnts,
-														MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
-
-			for (int i = 0; i < Num; ++i)
-			{
-				CCharacter *pTarget = apEnts[i];
-
-				if ((pTarget == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
-					continue;
-
-				// set his velocity to fast upward (for now)
-				if(length(pTarget->m_Pos-ProjStartPos) > 0.0f)
-					GameServer()->CreateHammerHit(pTarget->m_Pos-normalize(pTarget->m_Pos-ProjStartPos)*GetProximityRadius()*0.5f);
-				else
-					GameServer()->CreateHammerHit(ProjStartPos);
-
-				vec2 Dir;
-				if (length(pTarget->m_Pos - m_Pos) > 0.0f)
-					Dir = normalize(pTarget->m_Pos - m_Pos);
-				else
-					Dir = vec2(0.f, -1.f);
-
-				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
-					m_pPlayer->GetCID(), m_ActiveWeapon);
-				Hits++;
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_HAMMER);
 			}
+			else {
+				// reset objects Hit
+				m_NumObjectsHit = 0;
+				GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 
-			// if we Hit anything, we have to wait for the reload
-			if(Hits)
-				m_ReloadTimer = Server()->TickSpeed()/3;
+				CCharacter* apEnts[MAX_CLIENTS];
+				int Hits = 0;
+				int Num = GameServer()->m_World.FindEntities(ProjStartPos, GetProximityRadius() * 0.5f, (CEntity * *)apEnts,
+					MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
+
+				for (int i = 0; i < Num; ++i)
+				{
+					CCharacter* pTarget = apEnts[i];
+
+					if ((pTarget == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
+						continue;
+
+					// set his velocity to fast upward (for now)
+					if (length(pTarget->m_Pos - ProjStartPos) > 0.0f)
+						GameServer()->CreateHammerHit(pTarget->m_Pos - normalize(pTarget->m_Pos - ProjStartPos) * GetProximityRadius() * 0.5f);
+					else
+						GameServer()->CreateHammerHit(ProjStartPos);
+
+					vec2 Dir;
+					if (length(pTarget->m_Pos - m_Pos) > 0.0f)
+						Dir = normalize(pTarget->m_Pos - m_Pos);
+					else
+						Dir = vec2(0.f, -1.f);
+
+					pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir * -1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+						m_pPlayer->GetCID(), m_ActiveWeapon);
+					Hits++;
+				}
+
+				// if we Hit anything, we have to wait for the reload
+				if (Hits)
+					m_ReloadTimer = Server()->TickSpeed() / 3;
+			}
+			// INFCROYA END ------------------------------------------------------------//
 
 		} break;
 
 		case WEAPON_GUN:
 		{
-			new CProjectile(GameWorld(), WEAPON_GUN,
-				m_pPlayer->GetCID(),
-				ProjStartPos,
-				Direction,
-				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GunLifetime),
-				g_pData->m_Weapons.m_Gun.m_pBase->m_Damage, false, 0, -1, WEAPON_GUN);
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_GUN);
+			}
+			else {
+				new CProjectile(GameWorld(), WEAPON_GUN,
+					m_pPlayer->GetCID(),
+					ProjStartPos,
+					Direction,
+					(int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime),
+					g_pData->m_Weapons.m_Gun.m_pBase->m_Damage, false, 0, -1, WEAPON_GUN);
 
-			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+				GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		} break;
 
 		case WEAPON_SHOTGUN:
 		{
-			int ShotSpread = 2;
-
-			for(int i = -ShotSpread; i <= ShotSpread; ++i)
-			{
-				float Spreading[] = {-0.185f, -0.070f, 0, 0.070f, 0.185f};
-				float a = angle(Direction);
-				a += Spreading[i+2];
-				float v = 1-(absolute(i)/(float)ShotSpread);
-				float Speed = mix((float)GameServer()->Tuning()->m_ShotgunSpeeddiff, 1.0f, v);
-				new CProjectile(GameWorld(), WEAPON_SHOTGUN,
-					m_pPlayer->GetCID(),
-					ProjStartPos,
-					vec2(cosf(a), sinf(a))*Speed,
-					(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_ShotgunLifetime),
-					g_pData->m_Weapons.m_Shotgun.m_pBase->m_Damage, false, 0, -1, WEAPON_SHOTGUN);
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_SHOTGUN);
 			}
+			else {
+				int ShotSpread = 2;
 
-			GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+				for (int i = -ShotSpread; i <= ShotSpread; ++i)
+				{
+					float Spreading[] = { -0.185f, -0.070f, 0, 0.070f, 0.185f };
+					float a = angle(Direction);
+					a += Spreading[i + 2];
+					float v = 1 - (absolute(i) / (float)ShotSpread);
+					float Speed = mix((float)GameServer()->Tuning()->m_ShotgunSpeeddiff, 1.0f, v);
+					new CProjectile(GameWorld(), WEAPON_SHOTGUN,
+						m_pPlayer->GetCID(),
+						ProjStartPos,
+						vec2(cosf(a), sinf(a)) * Speed,
+						(int)(Server()->TickSpeed() * GameServer()->Tuning()->m_ShotgunLifetime),
+						g_pData->m_Weapons.m_Shotgun.m_pBase->m_Damage, false, 0, -1, WEAPON_SHOTGUN);
+				}
+
+				GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		} break;
 
 		case WEAPON_GRENADE:
 		{
-			new CProjectile(GameWorld(), WEAPON_GRENADE,
-				m_pPlayer->GetCID(),
-				ProjStartPos,
-				Direction,
-				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeLifetime),
-				g_pData->m_Weapons.m_Grenade.m_pBase->m_Damage, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_GRENADE);
+			}
+			else {
+				new CProjectile(GameWorld(), WEAPON_GRENADE,
+					m_pPlayer->GetCID(),
+					ProjStartPos,
+					Direction,
+					(int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeLifetime),
+					g_pData->m_Weapons.m_Grenade.m_pBase->m_Damage, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
 
-			GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+				GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		} break;
 
 		case WEAPON_LASER:
 		{
-			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
-			GameServer()->CreateSound(m_Pos, SOUND_LASER_FIRE);
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_LASER);
+			}
+			else {
+				new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
+				GameServer()->CreateSound(m_Pos, SOUND_LASER_FIRE);
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		} break;
 
 		case WEAPON_NINJA:
 		{
-			// reset Hit objects
-			m_NumObjectsHit = 0;
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_NINJA);
+			}
+			else {
+				// reset Hit objects
+				m_NumObjectsHit = 0;
 
-			m_Ninja.m_ActivationDir = Direction;
-			m_Ninja.m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
-			m_Ninja.m_OldVelAmount = length(m_Core.m_Vel);
+				m_Ninja.m_ActivationDir = Direction;
+				m_Ninja.m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
+				m_Ninja.m_OldVelAmount = length(m_Core.m_Vel);
 
-			GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
+				GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		} break;
 
 	}
@@ -402,8 +520,16 @@ void CCharacter::FireWeapon()
 	if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0) // -1 == unlimited
 		m_aWeapons[m_ActiveWeapon].m_Ammo--;
 
-	if(!m_ReloadTimer)
-		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
+	// INFCROYA BEGIN ------------------------------------------------------------
+
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		m_ReloadTimer = Server()->GetFireDelay(GetInfWeaponID(m_ActiveWeapon)) * Server()->TickSpeed() / 1000;
+	}
+	else {
+		if (!m_ReloadTimer)
+			m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
+	}
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void CCharacter::HandleWeapons()
@@ -422,28 +548,70 @@ void CCharacter::HandleWeapons()
 	FireWeapon();
 
 	// ammo regen
-	int AmmoRegenTime = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Ammoregentime;
-	if(AmmoRegenTime && m_aWeapons[m_ActiveWeapon].m_Ammo >= 0)
-	{
-		// If equipped and not active, regen ammo?
-		if (m_ReloadTimer <= 0)
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		for (int i = WEAPON_GUN; i <= WEAPON_LASER; i++)
 		{
-			if (m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart < 0)
-				m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = Server()->Tick();
+			int InfWID = GetInfWeaponID(i);
+			int AmmoRegenTime = Server()->GetAmmoRegenTime(InfWID);
+			int MaxAmmo = Server()->GetMaxAmmo(InfWID);
 
-			if ((Server()->Tick() - m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart) >= AmmoRegenTime * Server()->TickSpeed() / 1000)
+			if (InfWID == INFWEAPON_MERCENARY_GUN)
 			{
-				// Add some ammo
-				m_aWeapons[m_ActiveWeapon].m_Ammo = min(m_aWeapons[m_ActiveWeapon].m_Ammo + 1,
-					g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Maxammo);
+				if (m_InAirTick > Server()->TickSpeed() * 4)
+				{
+					AmmoRegenTime = 0;
+				}
+			}
+
+			if (AmmoRegenTime)
+			{
+				if (m_ReloadTimer <= 0)
+				{
+					if (m_aWeapons[i].m_AmmoRegenStart < 0)
+						m_aWeapons[i].m_AmmoRegenStart = Server()->Tick();
+
+					if ((Server()->Tick() - m_aWeapons[i].m_AmmoRegenStart) >= AmmoRegenTime * Server()->TickSpeed() / 1000)
+					{
+						// Add some ammo
+						m_aWeapons[i].m_Ammo = min(m_aWeapons[i].m_Ammo + 1, MaxAmmo);
+						m_aWeapons[i].m_AmmoRegenStart = -1;
+					}
+				}
+			}
+		}
+	}
+	else {
+		int AmmoRegenTime = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Ammoregentime;
+		if (AmmoRegenTime && m_aWeapons[m_ActiveWeapon].m_Ammo >= 0)
+		{
+			// If equipped and not active, regen ammo?
+			if (m_ReloadTimer <= 0)
+			{
+				if (m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart < 0)
+					m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = Server()->Tick();
+
+				if ((Server()->Tick() - m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart) >= AmmoRegenTime * Server()->TickSpeed() / 1000)
+				{
+					// Add some ammo
+					m_aWeapons[m_ActiveWeapon].m_Ammo = min(m_aWeapons[m_ActiveWeapon].m_Ammo + 1,
+						g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Maxammo);
+					m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
+				}
+			}
+			else
+			{
 				m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
 			}
 		}
-		else
-		{
-			m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
-		}
 	}
+
+	// not in the right place, but still in Tick()
+	if (!IsGrounded() && (m_Core.m_HookState != HOOK_GRABBED || m_Core.m_HookedPlayer != -1))
+		m_InAirTick++;
+	else
+		m_InAirTick = 0;
+	// INFCROYA END ------------------------------------------------------------//
 
 	return;
 }
@@ -477,6 +645,325 @@ void CCharacter::SetEmote(int Emote, int Tick)
 	m_EmoteType = Emote;
 	m_EmoteStop = Tick;
 }
+
+// INFCROYA BEGIN ------------------------------------------------------------
+void CCharacter::SetNormalEmote(int Emote)
+{
+	m_NormalEmote = Emote;
+}
+
+bool CCharacter::IsHuman() const {
+	return !m_Infected;
+}
+
+bool CCharacter::IsZombie() const {
+	return m_Infected;
+}
+
+void CCharacter::SetInfected(bool Infected) {
+	m_Infected = Infected;
+	m_Core.m_Infected = Infected;
+}
+
+void CCharacter::SetCroyaPlayer(CroyaPlayer* CroyaPlayer) {
+	m_pCroyaPlayer = CroyaPlayer;
+}
+
+CroyaPlayer* CCharacter::GetCroyaPlayer() {
+	return m_pCroyaPlayer;
+}
+
+void CCharacter::ResetWeaponsHealth()
+{
+	m_Health = 0;
+	m_Armor = 0;
+	for (auto& each : m_aWeapons) {
+		each.m_Got = false;
+	}
+}
+
+int CCharacter::GetActiveWeapon() const
+{
+	return m_ActiveWeapon;
+}
+
+void CCharacter::SetReloadTimer(int ReloadTimer)
+{
+	m_ReloadTimer = ReloadTimer;
+}
+
+void CCharacter::SetNumObjectsHit(int NumObjectsHit)
+{
+	m_NumObjectsHit = NumObjectsHit;
+}
+
+void CCharacter::Infect(int From)
+{
+	if (From >= 0) { // -1 and below is a special case (e.g infect when inside infection zone)
+		// Kill message (copypasted from CCharacter::TakeDamage)
+		CNetMsg_Sv_KillMsg Msg;
+		Msg.m_Killer = From;
+		Msg.m_Victim = m_pPlayer->GetCID();
+		Msg.m_Weapon = WEAPON_HAMMER;
+		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+
+		// BEGIN // do that before you actually turn someone into a zombie
+		GetCroyaPlayer()->SetOldClassNum(GetCroyaPlayer()->GetClassNum());
+		GameServer()->m_apPlayers[From]->GetCroyaPlayer()->OnKill(GetPlayer()->GetCID());
+		// END //   do that before you actually turn someone into a zombie
+	}
+	GetCroyaPlayer()->SetOldClassNum(GetCroyaPlayer()->GetClassNum());
+	GetCroyaPlayer()->TurnIntoRandomZombie();
+}
+
+bool CCharacter::IncreaseOverallHp(int Amount)
+{
+	bool success = false;
+	if (m_Health < 10)
+	{
+		int healthDiff = 10 - m_Health;
+		IncreaseHealth(Amount);
+		success = true;
+		Amount = Amount - healthDiff;
+	}
+	if (Amount > 0)
+	{
+		if (IncreaseArmor(Amount))
+			success = true;
+	}
+	return success;
+}
+
+int CCharacter::GetHealthArmorSum() const
+{
+	return m_Health + m_Armor;
+}
+
+void CCharacter::SetHealthArmor(int Health, int Armor)
+{
+	m_Health = Health;
+	m_Armor = Armor;
+}
+
+CCharacterCore& CCharacter::GetCharacterCore()
+{
+	return m_Core;
+}
+
+void CCharacter::Freeze(float Time, int Player, int Reason)
+{
+	//if (m_IsFrozen && m_FreezeReason == FREEZEREASON_UNDEAD)
+	//	return;
+
+	m_IsFrozen = true;
+	m_FrozenTime = Server()->TickSpeed() * Time;
+	m_FreezeReason = Reason;
+
+	m_LastFreezer = Player;
+}
+void CCharacter::Unfreeze()
+{
+	m_IsFrozen = false;
+	m_FrozenTime = -1;
+
+	if (m_FreezeReason == FREEZEREASON_UNDEAD)
+	{
+		m_Health = 10.0;
+	}
+
+	GameServer()->CreatePlayerSpawn(m_Pos);
+}
+void CCharacter::Poison(int Count, int From)
+{
+	if (m_Poison <= 0)
+	{
+		m_PoisonTick = 0;
+		m_Poison = Count;
+		m_PoisonFrom = From;
+	}
+}
+
+void CCharacter::DestroyChildEntities()
+{
+	for (CEngineerWall* pWall = (CEngineerWall*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_ENGINEER_WALL); pWall; pWall = (CEngineerWall*)pWall->TypeNext())
+	{
+		if (pWall->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pWall);
+	}
+	for (CSoldierBomb* pBomb = (CSoldierBomb*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_SOLDIER_BOMB); pBomb; pBomb = (CSoldierBomb*)pBomb->TypeNext())
+	{
+		if (pBomb->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pBomb);
+	}
+	for (CScientistMine* pMine = (CScientistMine*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_SCIENTIST_MINE); pMine; pMine = (CScientistMine*)pMine->TypeNext())
+	{
+		if (pMine->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pMine);
+	}
+	for (CBiologistMine* pMine = (CBiologistMine*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_BIOLOGIST_MINE); pMine; pMine = (CBiologistMine*)pMine->TypeNext())
+	{
+		if (pMine->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pMine);
+	}
+	for (CMedicGrenade* pGrenade = (CMedicGrenade*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_MEDIC_GRENADE); pGrenade; pGrenade = (CMedicGrenade*)pGrenade->TypeNext())
+	{
+		if (pGrenade->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pGrenade);
+	}
+	for (CMercenaryBomb* pBomb = (CMercenaryBomb*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_MERCENARY_BOMB); pBomb; pBomb = (CMercenaryBomb*)pBomb->TypeNext())
+	{
+		if (pBomb->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pBomb);
+	}
+	for (CScatterGrenade* pGrenade = (CScatterGrenade*)GameWorld()->FindFirst(CGameWorld::ENTTYPE_SCATTER_GRENADE); pGrenade; pGrenade = (CScatterGrenade*)pGrenade->TypeNext())
+	{
+		if (pGrenade->m_Owner != m_pPlayer->GetCID()) continue;
+		GameServer()->m_World.DestroyEntity(pGrenade);
+	}
+}
+
+bool CCharacter::IsHookProtected() const
+{
+	return m_HookProtected;
+}
+
+void CCharacter::SetHookProtected(bool HookProtected)
+{
+	m_HookProtected = HookProtected;
+	m_Core.m_HookProtected = HookProtected;
+}
+
+CNetObj_PlayerInput& CCharacter::GetInput()
+{
+	return m_Input;
+}
+
+bool CCharacter::FindPortalPosition(vec2 Pos, vec2& Res)
+{
+	vec2 PortalShift = Pos - m_Pos;
+	vec2 PortalDir = normalize(PortalShift);
+	if (length(PortalShift) > 500.0f)
+		PortalShift = PortalDir * 500.0f;
+
+	float Iterator = length(PortalShift);
+	while (Iterator > 0.0f)
+	{
+		PortalShift = PortalDir * Iterator;
+		vec2 PortalPos = m_Pos + PortalShift;
+
+		if (GameServer()->m_pController->IsSpawnable(PortalPos))
+		{
+			Res = PortalPos;
+			return true;
+		}
+
+		Iterator -= 4.0f;
+	}
+
+	return false;
+}
+
+void CCharacter::SaturateVelocity(vec2 Force, float MaxSpeed)
+{
+	if (length(Force) < 0.00001)
+		return;
+
+	float Speed = length(m_Core.m_Vel);
+	vec2 VelDir = normalize(m_Core.m_Vel);
+	if (Speed < 0.00001)
+	{
+		VelDir = normalize(Force);
+	}
+	vec2 OrthoVelDir = vec2(-VelDir.y, VelDir.x);
+	float VelDirFactor = dot(Force, VelDir);
+	float OrthoVelDirFactor = dot(Force, OrthoVelDir);
+
+	vec2 NewVel = m_Core.m_Vel;
+	if (Speed < MaxSpeed || VelDirFactor < 0.0f)
+	{
+		NewVel += VelDir * VelDirFactor;
+		float NewSpeed = length(NewVel);
+		if (NewSpeed > MaxSpeed)
+		{
+			if (VelDirFactor > 0.f)
+				NewVel = VelDir * MaxSpeed;
+			else
+				NewVel = -VelDir * MaxSpeed;
+		}
+	}
+
+	NewVel += OrthoVelDir * OrthoVelDirFactor;
+
+	m_Core.m_Vel = NewVel;
+}
+
+int CCharacter::GetInfWeaponID(int WID)
+{
+	if (WID == WEAPON_HAMMER)
+	{
+	}
+	else if (WID == WEAPON_GUN)
+	{
+		switch (GetCroyaPlayer()->GetClassNum())
+		{
+		case Class::MERCENARY:
+			return INFWEAPON_MERCENARY_GUN;
+		default:
+			return INFWEAPON_GUN;
+		}
+		return INFWEAPON_GUN;
+	}
+	else if (WID == WEAPON_SHOTGUN)
+	{
+		switch (GetCroyaPlayer()->GetClassNum())
+		{
+		case Class::MEDIC:
+			return INFWEAPON_MEDIC_SHOTGUN;
+		case Class::BIOLOGIST:
+			return INFWEAPON_BIOLOGIST_SHOTGUN;
+		default:
+			return INFWEAPON_SHOTGUN;
+		}
+	}
+	else if (WID == WEAPON_GRENADE)
+	{
+		switch (GetCroyaPlayer()->GetClassNum())
+		{
+		case Class::MERCENARY:
+			return INFWEAPON_MERCENARY_GRENADE;
+		case Class::MEDIC:
+			return INFWEAPON_MEDIC_GRENADE;
+		case Class::SOLDIER:
+			return INFWEAPON_SOLDIER_GRENADE;
+		case Class::SCIENTIST:
+			return INFWEAPON_SCIENTIST_GRENADE;
+		default:
+			return INFWEAPON_GRENADE;
+		}
+	}
+	else if (WID == WEAPON_LASER)
+	{
+		switch (GetCroyaPlayer()->GetClassNum())
+		{
+		case Class::ENGINEER:
+			return INFWEAPON_ENGINEER_RIFLE;
+		case Class::SCIENTIST:
+			return INFWEAPON_SCIENTIST_RIFLE;
+		case Class::BIOLOGIST:
+			return INFWEAPON_BIOLOGIST_RIFLE;
+		case Class::MEDIC:
+			return INFWEAPON_MEDIC_RIFLE;
+		default:
+			return INFWEAPON_RIFLE;
+		}
+	}
+	else if (WID == WEAPON_NINJA)
+	{
+		return INFWEAPON_NINJA;
+	}
+	return INFWEAPON_NONE;
+}
+// INFCROYA END ------------------------------------------------------------//
 
 void CCharacter::OnPredictedInput(CNetObj_PlayerInput *pNewInput)
 {
@@ -629,6 +1116,9 @@ void CCharacter::TickPaused()
 		++m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart;
 	if(m_EmoteStop > -1)
 		++m_EmoteStop;
+	// INFCROYA BEGIN ------------------------------------------------------------
+	++m_HookDmgTick;
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 bool CCharacter::IncreaseHealth(int Amount)
@@ -652,7 +1142,15 @@ void CCharacter::Die(int Killer, int Weapon)
 	// we got to wait 0.5 secs before respawning
 	m_Alive = false;
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
-	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+	// INFCROYA BEGIN ------------------------------------------------------------
+	int ModeSpecial;
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		ModeSpecial = 0;
+	}
+	else {
+		ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+	}
+	// INFCROYA END ------------------------------------------------------------//
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
@@ -667,6 +1165,11 @@ void CCharacter::Die(int Killer, int Weapon)
 	Msg.m_Weapon = Weapon;
 	Msg.m_ModeSpecial = ModeSpecial;
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+	}
+	// INFCROYA END ------------------------------------------------------------//
 
 	// a nice sound
 	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
@@ -677,6 +1180,10 @@ void CCharacter::Die(int Killer, int Weapon)
 	GameServer()->m_World.RemoveEntity(this);
 	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 	GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	DestroyChildEntities();
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weapon)
@@ -689,6 +1196,16 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 	// m_pPlayer only inflicts half damage on self
 	if(From == m_pPlayer->GetCID())
 		Dmg = max(1, Dmg/2);
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	// search tags: no self harm no selfharm selfhurt self hurt
+	if (From == m_pPlayer->GetCID() && Weapon != WEAPON_WORLD) {
+		int ClassNum = GetCroyaPlayer()->GetClassNum();
+		if ((ClassNum == Class::SOLDIER && m_ActiveWeapon == WEAPON_GRENADE) || (ClassNum == Class::SCIENTIST && m_ActiveWeapon == WEAPON_LASER)) {
+			return false;
+		}
+	}
+	// INFCROYA END ------------------------------------------------------------//
 
 	int OldHealth = m_Health, OldArmor = m_Armor;
 	if(Dmg)
@@ -745,6 +1262,11 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 			{
 				pChr->m_EmoteType = EMOTE_HAPPY;
 				pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
+				// INFCROYA BEGIN ------------------------------------------------------------
+				if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0 && GameServer()->m_apPlayers[From]) {
+					pChr->GetCroyaPlayer()->OnKill(GetPlayer()->GetCID());
+				}
+				// INFCROYA END ------------------------------------------------------------//
 			}
 		}
 
@@ -788,7 +1310,7 @@ void CCharacter::Snap(int SnappingClient)
 	// set emote
 	if (m_EmoteStop < Server()->Tick())
 	{
-		m_EmoteType = EMOTE_NORMAL;
+		m_EmoteType = m_NormalEmote; // INFCROYA RELATED
 		m_EmoteStop = -1;
 	}
 
@@ -820,6 +1342,34 @@ void CCharacter::Snap(int SnappingClient)
 		if(250 - ((Server()->Tick() - m_LastAction)%(250)) < 5)
 			pCharacter->m_Emote = EMOTE_BLINK;
 	}
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	// Heart displayed on top of injured tees
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		CPlayer* pClient = GameServer()->m_apPlayers[SnappingClient];
+		if (m_Infected && m_Health < 10 && SnappingClient != m_pPlayer->GetCID() && pClient->GetCroyaPlayer()->IsZombie()) {
+			CNetObj_Pickup* pP = static_cast<CNetObj_Pickup*>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, m_HeartID, sizeof(CNetObj_Pickup)));
+			if (!pP)
+				return;
+
+			pP->m_X = (int)m_Pos.x;
+			pP->m_Y = (int)m_Pos.y - 60.0;
+			pP->m_Type = PICKUP_HEALTH;
+		}
+		if (!m_FirstShot)
+		{
+			CNetObj_Laser* pObj = static_cast<CNetObj_Laser*>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_BarrierHintID, sizeof(CNetObj_Laser)));
+			if (!pObj)
+				return;
+
+			pObj->m_X = (int)m_FirstShotCoord.x;
+			pObj->m_Y = (int)m_FirstShotCoord.y;
+			pObj->m_FromX = (int)m_FirstShotCoord.x;
+			pObj->m_FromY = (int)m_FirstShotCoord.y;
+			pObj->m_StartTick = Server()->Tick();
+		}
+	}
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void CCharacter::PostSnap()

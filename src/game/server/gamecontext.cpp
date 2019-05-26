@@ -121,7 +121,7 @@ void CGameContext::CreateHammerHit(vec2 Pos)
 }
 
 
-void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamage)
+void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamage, bool MercBomb) // INFCROYA RELATED, (bool MercBomb)
 {
 	// create the event
 	CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)m_Events.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion));
@@ -139,6 +139,11 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamag
 	int Num = m_World.FindEntities(Pos, Radius, (CEntity**)apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 	for(int i = 0; i < Num; i++)
 	{
+		// INFCROYA BEGIN ------------------------------------------------------------
+		if (MercBomb && m_apPlayers[Owner]->GetCroyaPlayer()->IsZombie()) {
+			break;
+		}
+		// INFCROYA END ------------------------------------------------------------//
 		vec2 Diff = apEnts[i]->GetPos() - Pos;
 		vec2 Force(0, MaxForce);
 		float l = length(Diff);
@@ -916,6 +921,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		}
 		else if(MsgID == NETMSGTYPE_CL_VOTE)
 		{
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+				pPlayer->GetCroyaPlayer()->OnButtonF3();
+			}
+			// INFCROYA END ------------------------------------------------------------//
+
 			if(!m_VoteCloseTime)
 				return;
 
@@ -1589,3 +1600,52 @@ const char *CGameContext::NetVersionHashUsed() const { return GAME_NETVERSION_HA
 const char *CGameContext::NetVersionHashReal() const { return GAME_NETVERSION_HASH; }
 
 IGameServer *CreateGameServer() { return new CGameContext; }
+
+// INFCROYA BEGIN ------------------------------------------------------------
+void CGameContext::CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan)
+{
+	CGameContext::LaserDotState State;
+	State.m_Pos0 = Pos0;
+	State.m_Pos1 = Pos1;
+	State.m_LifeSpan = LifeSpan;
+	State.m_SnapID = Server()->SnapNewID();
+
+	m_LaserDots.add(State);
+}
+
+void CGameContext::SendChatTarget(int To, const char* pText)
+{
+	CNetMsg_Sv_Chat Msg;
+	Msg.m_Mode = MSGFLAG_VITAL;
+	Msg.m_ClientID = -1;
+	Msg.m_TargetID = To;
+	Msg.m_pMessage = pText;
+	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, To);
+}
+
+int CGameContext::GetHumanCount() const
+{
+	int HumanCount = 0;
+	for (CPlayer* each : m_apPlayers) {
+		if (each) {
+			CCharacter* pChr = each->GetCharacter();
+			if (pChr && pChr->IsHuman())
+				HumanCount++;
+		}
+	}
+	return HumanCount;
+}
+
+int CGameContext::GetZombieCount() const
+{
+	int ZombiesCount = 0;
+	for (CPlayer* each : m_apPlayers) {
+		if (each) {
+			CCharacter* pChr = each->GetCharacter();
+			if (pChr && pChr->IsZombie())
+				ZombiesCount++;
+		}
+	}
+	return ZombiesCount;
+}
+// INFCROYA END ------------------------------------------------------------//

@@ -6,9 +6,24 @@
 #include "gamecontext.h"
 #include "gamecontroller.h"
 #include "player.h"
-
+// INFCROYA BEGIN ------------------------------------------------------------
+#include <infcroya/croyaplayer.h>
+#include <game/server/gamemodes/mod.h>
+// INFCROYA END ------------------------------------------------------------//
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
+
+// INFCROYA BEGIN ------------------------------------------------------------
+CroyaPlayer* CPlayer::GetCroyaPlayer()
+{
+	return m_pCroyaPlayer;
+}
+
+void CPlayer::SetCroyaPlayer(CroyaPlayer* pCroyaPlayer)
+{
+	m_pCroyaPlayer = pCroyaPlayer;
+}
+// INFCROYA END ------------------------------------------------------------//
 
 IServer *CPlayer::Server() const { return m_pGameServer->Server(); }
 
@@ -467,6 +482,19 @@ void CPlayer::TryRespawn()
 
 	m_Spawning = false;
 	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
-	m_pCharacter->Spawn(this, SpawnPos);
-	GameServer()->CreatePlayerSpawn(SpawnPos);
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+		if (GetCroyaPlayer()->IsHuman()) {
+			m_pCharacter->Spawn(this, SpawnPos);
+			GameServer()->CreatePlayerSpawn(SpawnPos);
+		}
+		else if (!GetCroyaPlayer()->GetGameControllerMOD()->IsExplosionStarted()) {
+			m_pCharacter->Spawn(this, SpawnPos);
+		}
+	}
+	else {
+		m_pCharacter->Spawn(this, SpawnPos);
+		GameServer()->CreatePlayerSpawn(SpawnPos);
+	}
+	// INFCROYA END ------------------------------------------------------------//
 }

@@ -11,6 +11,7 @@
 
 #include "eventhandler.h"
 #include "gameworld.h"
+#include <base/tl/array.h> // INFCROYA RELATED
 
 /*
 	Tick
@@ -68,6 +69,17 @@ class CGameContext : public IGameServer
 	void Construct(int Resetting);
 
 	bool m_Resetting;
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	struct LaserDotState
+	{
+		vec2 m_Pos0;
+		vec2 m_Pos1;
+		int m_LifeSpan;
+		int m_SnapID;
+	};
+	array<LaserDotState> m_LaserDots;
+	// INFCROYA END ------------------------------------------------------------//
 public:
 	IServer *Server() const { return m_pServer; }
 	class IConsole *Console() { return m_pConsole; }
@@ -128,7 +140,7 @@ public:
 
 	// helper functions
 	void CreateDamage(vec2 Pos, int Id, vec2 Source, int HealthAmount, int ArmorAmount, bool Self);
-	void CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamage);
+	void CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamage, bool MercBomb = false); // INFCROYA RELATED, (bool MercBomb)
 	void CreateHammerHit(vec2 Pos);
 	void CreatePlayerSpawn(vec2 Pos);
 	void CreateDeath(vec2 Pos, int Who);
@@ -181,9 +193,14 @@ public:
 	virtual const char *GameType() const;
 	virtual const char *Version() const;
 	virtual const char *NetVersion() const;
+
 	virtual const char *NetVersionHashUsed() const;
-	virtual const char *NetVersionHashReal() const;
-};
+	virtual const char *NetVersionHashReal() const;// INFCROYA BEGIN ------------------------------------------------------------
+	void CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan);
+	void SendChatTarget(int To, const char* pText);
+	int GetHumanCount() const;
+	int GetZombieCount() const;
+	// INFCROYA END ------------------------------------------------------------//};
 
 inline int64 CmaskAll() { return -1; }
 inline int64 CmaskOne(int ClientID) { return (int64)1<<ClientID; }

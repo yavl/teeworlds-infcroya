@@ -7,7 +7,15 @@
 
 #include <game/gamecore.h>
 #include <game/server/entity.h>
+#include <base/tl/array.h> // INFCROYA RELATED
 
+// INFCROYA BEGIN ------------------------------------------------------------
+enum
+{
+	FREEZEREASON_FLASH = 0,
+	FREEZEREASON_UNDEAD = 1
+};
+// INFCROYA END ------------------------------------------------------------//
 
 class CCharacter : public CEntity
 {
@@ -58,16 +66,81 @@ public:
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+	void SetNormalEmote(int Emote);
+
+	bool IsHuman() const;
+	bool IsZombie() const;
+
+	void SetInfected(bool Infected);
+
+	void SetCroyaPlayer(class CroyaPlayer* CroyaPlayer);
+	class CroyaPlayer* GetCroyaPlayer();
+
+	void ResetWeaponsHealth();
+
+	int GetActiveWeapon() const;
+	void SetReloadTimer(int ReloadTimer);
+	void SetNumObjectsHit(int NumObjectsHit);
+	void Infect(int From);
+	bool IncreaseOverallHp(int Amount);
+	int GetHealthArmorSum() const;
+	void SetHealthArmor(int Health, int Armor);
+
+	CCharacterCore& GetCharacterCore();
+	bool m_FirstShot;
+	vec2 m_FirstShotCoord;
+	int m_BarrierHintID;
+	array<int> m_BarrierHintIDs;
+
+	void Freeze(float Time, int Player, int Reason);
+	void Unfreeze();
+	void Poison(int Count, int From);
+
+	void DestroyChildEntities();
+
+	bool IsHookProtected() const;
+	void SetHookProtected(bool HookProtected);
+
+	CNetObj_PlayerInput& GetInput();
+
+	bool FindPortalPosition(vec2 Pos, vec2& Res);
+
+	void SaturateVelocity(vec2 Force, float MaxSpeed);
+
+	int m_HookDmgTick;
+	int m_InAirTick;
+	int GetInfWeaponID(int WID);
+	// INFCROYA END ------------------------------------------------------------//
+
 private:
 	// player controlling this character
 	class CPlayer *m_pPlayer;
 
 	bool m_Alive;
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+	bool m_Infected;
+	class CroyaPlayer* m_pCroyaPlayer;
+	int m_HeartID;
+	int m_NormalEmote;
+	bool m_IsFrozen;
+	int m_FrozenTime;
+	int m_FreezeReason;
+	int m_LastFreezer;
+
+	int m_Poison;
+	int m_PoisonTick;
+	int m_PoisonFrom;
+	bool m_HookProtected;
+	// INFCROYA END ------------------------------------------------------------//
+
 	// weapon info
 	CEntity *m_apHitObjects[10];
 	int m_NumObjectsHit;
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+public:
 	struct WeaponStat
 	{
 		int m_AmmoRegenStart;
@@ -75,6 +148,8 @@ private:
 		bool m_Got;
 
 	} m_aWeapons[NUM_WEAPONS];
+private:
+	// INFCROYA END ------------------------------------------------------------//
 
 	int m_ActiveWeapon;
 	int m_LastWeapon;
