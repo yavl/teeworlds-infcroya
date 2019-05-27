@@ -122,8 +122,13 @@ void CPickup::Tick()
 				pChr->GetPlayer()->GetCID(), Server()->ClientName(pChr->GetPlayer()->GetCID()), m_Type);
 			GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 			int RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;
-			if(RespawnTime >= 0)
-				m_SpawnTick = Server()->Tick() + Server()->TickSpeed() * RespawnTime;
+			// INFCROYA BEGIN ------------------------------------------------------------
+			// ez crash fix (or not)
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") != 0) {
+				if (RespawnTime >= 0)
+					m_SpawnTick = Server()->Tick() + Server()->TickSpeed() * RespawnTime;
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		}
 	}
 }
