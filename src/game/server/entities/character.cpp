@@ -135,11 +135,13 @@ void CCharacter::Destroy()
 		}
 		if (m_BarrierHintID >= 0) {
 			Server()->SnapFreeID(m_BarrierHintID);
-			for (int i = 0; i < 2; i++)
-			{
-				if (m_BarrierHintIDs[i] >= 0) {
-					Server()->SnapFreeID(m_BarrierHintIDs[i]);
-				}
+			m_BarrierHintID = -1;
+		}
+
+		if (m_BarrierHintIDs[0] >= 0) {
+			for (int i = 0; i < 2; i++) {
+				Server()->SnapFreeID(m_BarrierHintIDs[i]);
+				m_BarrierHintIDs[i] = -1;
 			}
 		}
 	}
