@@ -1349,7 +1349,7 @@ void CCharacter::Snap(int SnappingClient)
 	// Heart displayed on top of injured tees
 	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
 		CPlayer* pClient = GameServer()->m_apPlayers[SnappingClient];
-		if (m_Infected && m_Health < 10 && SnappingClient != m_pPlayer->GetCID() && pClient->GetCroyaPlayer()->IsZombie()) {
+		if (IsZombie() && GetHealthArmorSum() < 10 && SnappingClient != m_pPlayer->GetCID() && pClient->GetCroyaPlayer()->IsZombie()) {
 			CNetObj_Pickup* pP = static_cast<CNetObj_Pickup*>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, m_HeartID, sizeof(CNetObj_Pickup)));
 			if (!pP)
 				return;
@@ -1357,6 +1357,18 @@ void CCharacter::Snap(int SnappingClient)
 			pP->m_X = (int)m_Pos.x;
 			pP->m_Y = (int)m_Pos.y - 60.0;
 			pP->m_Type = PICKUP_HEALTH;
+		}
+		if (IsHuman() && m_Armor < 10 && SnappingClient != m_pPlayer->GetCID() && pClient->GetCroyaPlayer()->GetClassNum() == Class::MEDIC) {
+			CNetObj_Pickup* pP = static_cast<CNetObj_Pickup*>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, m_HeartID, sizeof(CNetObj_Pickup)));
+			if (!pP)
+				return;
+
+			pP->m_X = (int)m_Pos.x;
+			pP->m_Y = (int)m_Pos.y - 60.0;
+			if (m_Health < 10 && m_Armor == 0)
+				pP->m_Type = PICKUP_HEALTH;
+			else
+				pP->m_Type = PICKUP_ARMOR;
 		}
 		if (!m_FirstShot)
 		{
