@@ -832,6 +832,8 @@ void CCharacter::DestroyChildEntities()
 		if (pGrenade->m_Owner != m_pPlayer->GetCID()) continue;
 		GameServer()->m_World.DestroyEntity(pGrenade);
 	}
+
+	m_FirstShot = true;
 }
 
 bool CCharacter::IsHookProtected() const

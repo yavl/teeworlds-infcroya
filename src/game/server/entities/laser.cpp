@@ -59,7 +59,16 @@ void CLaser::DoBounce()
 
 			GameServer()->Collision()->MovePoint(&TempPos, &TempDir, 1.0f, 0);
 			m_Pos = TempPos;
+			// INFCROYA BEGIN ------------------------------------------------------------
+			// server crash was pointing here, here is an attempt to make a dirty fix
+			if (m_Dir.x == 0 && m_Dir.y == 0) {
+				// give them fake values
+				m_Dir.x = 1.0f;
+				m_Dir.y = 1.0f;
+				GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "issue", "m_Dir has zero components");
+			}
 			m_Dir = normalize(TempDir);
+			// INFCROYA END ------------------------------------------------------------//
 
 			m_Energy -= distance(m_From, m_Pos) + GameServer()->Tuning()->m_LaserBounceCost;
 			m_Bounces++;
