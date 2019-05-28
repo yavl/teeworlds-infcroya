@@ -27,6 +27,10 @@ void CPickup::Reset()
 
 void CPickup::Tick()
 {
+	// INFCROYA BEGIN ------------------------------------------------------------
+	// CPickup is somehow still created and Tick() function crashes the server
+	return;
+	// INFCROYA END ------------------------------------------------------------//
 	// wait for respawn
 	if(m_SpawnTick > 0)
 	{
