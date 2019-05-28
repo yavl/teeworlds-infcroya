@@ -84,6 +84,7 @@ public:
 	void SetNumObjectsHit(int NumObjectsHit);
 	void Infect(int From);
 	bool IncreaseOverallHp(int Amount);
+	int GetArmor() const;
 	int GetHealthArmorSum() const;
 	void SetHealthArmor(int Health, int Armor);
 

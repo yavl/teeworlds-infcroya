@@ -292,6 +292,7 @@ void CGameControllerMOD::Tick()
 					if (each->GetCroyaPlayer()->IsHuman())
 					{
 						GameServer()->SendChatTarget(each->GetCID(), Localize("You have survived, +5 points", each->GetCroyaPlayer()->GetLanguage()));
+						each->m_Score += 5;
 					}
 				}
 			}

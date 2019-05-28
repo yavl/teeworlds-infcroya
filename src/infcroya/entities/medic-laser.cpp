@@ -34,21 +34,19 @@ bool CMedicLaser::HitCharacter(vec2 From, vec2 To)
 	m_Pos = At;
 	m_Energy = -1;
 	if (pOwnerChar && pOwnerChar->GetCroyaPlayer()->GetClassNum() == Class::MEDIC) { // Revive zombie
-		const int MIN_ZOMBIES = 4;
-		const int DAMAGE_ON_REVIVE = 17;
 		int OldClass = pHit->GetCroyaPlayer()->GetOldClassNum();
 		auto medic = pOwnerChar;
 		auto zombie = pHit;
 		CGameContext* pGameServer = medic->GameServer();
 
-		if (medic && medic->GetHealthArmorSum() <= DAMAGE_ON_REVIVE) {
-			int HealthArmor = DAMAGE_ON_REVIVE + 1;
+		if (medic && medic->GetHealthArmorSum() <= g_Config.m_InfMedicReviveDamage) {
+			int HealthArmor = g_Config.m_InfMedicReviveDamage + 1;
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "You need at least %d hp", HealthArmor);
 			pGameServer->SendBroadcast(aBuf, medic->GetPlayer()->GetCID());
 		}
-		else if (GameServer()->GetZombieCount() <= MIN_ZOMBIES) {
-			int MinZombies = MIN_ZOMBIES + 1;
+		else if (GameServer()->GetZombieCount() < g_Config.m_InfMedicReviveMinZombies) {
+			int MinZombies = g_Config.m_InfMedicReviveMinZombies;
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "Too few zombies (less than %d)", MinZombies);
 			GameServer()->SendBroadcast(aBuf, m_Owner);
@@ -58,13 +56,14 @@ bool CMedicLaser::HitCharacter(vec2 From, vec2 To)
 			if (zombie->GetPlayer()->GetCharacter()) {
 				zombie->GetPlayer()->GetCharacter()->SetHealthArmor(1, 0);
 				zombie->Unfreeze();
-				medic->TakeDamage(vec2(0.f, 0.f), medic->GetPos(), DAMAGE_ON_REVIVE * 2, m_Owner, WEAPON_LASER);
+				medic->TakeDamage(vec2(0.f, 0.f), medic->GetPos(), g_Config.m_InfMedicReviveDamage * 2, m_Owner, WEAPON_LASER);
 
 				const char* MedicName = Server()->ClientName(medic->GetPlayer()->GetCID());
 				const char* ZombieName = Server()->ClientName(zombie->GetPlayer()->GetCID());
 				char aBuf[256];
 				str_format(aBuf, sizeof(aBuf), "Medic %s revived %s", MedicName, ZombieName);
 				GameServer()->SendChatTarget(-1, aBuf);
+				medic->GetPlayer()->m_Score += 5;
 				//Server()->RoundStatistics()->OnScoreEvent(ClientID, SCOREEVENT_MEDIC_REVIVE, medic->GetClass(), Server()->ClientName(ClientID), GameServer()->Console());
 				medic->GetCroyaPlayer()->OnKill(zombie->GetPlayer()->GetCID());
 			}

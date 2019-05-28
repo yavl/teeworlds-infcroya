@@ -55,9 +55,10 @@ void CMedic::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CCharac
 		for (int i = 0; i < Num; ++i)
 		{
 			CCharacter* pTarget = apEnts[i];
-			if (pTarget->IsHuman() && pTarget != pChr) {
+			if (pTarget->IsHuman() && pTarget != pChr && pTarget->GetArmor() < 10) {
 				pTarget->IncreaseArmor(4);
 				pTarget->SetEmote(EMOTE_HAPPY, pChr->Server()->Tick() + pChr->Server()->TickSpeed());
+				pChr->m_aWeapons[WEAPON_GRENADE].m_Ammo++;
 			}
 			if ((pTarget == pChr) || pGameServer->Collision()->IntersectLine(ProjStartPos, pTarget->GetPos(), NULL, NULL))
 				continue;

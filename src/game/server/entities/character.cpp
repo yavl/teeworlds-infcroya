@@ -736,6 +736,11 @@ bool CCharacter::IncreaseOverallHp(int Amount)
 	return success;
 }
 
+int CCharacter::GetArmor() const
+{
+	return m_Armor;
+}
+
 int CCharacter::GetHealthArmorSum() const
 {
 	return m_Health + m_Armor;

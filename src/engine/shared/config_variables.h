@@ -116,6 +116,8 @@ MACRO_CONFIG_INT(InfScientistTpSelfharm, inf_scientist_tp_selfharm, 2, 0, 10000,
 MACRO_CONFIG_INT(InfMercBombs, inf_merc_bombs, 15, 1, 100, CFGFLAG_SERVER, "Number of poison grenades for the mercenary")
 MACRO_CONFIG_INT(InfShowScoreTime, inf_show_score_time, 3, 0, 12, CFGFLAG_SERVER, "Number of seconds the score will be shown at the end of a round")
 MACRO_CONFIG_INT(InfSmokerHookDamage, inf_smoker_hook_damage, 2, 1, 10000, CFGFLAG_SERVER, "Damage taken by smoker (hook)")
+MACRO_CONFIG_INT(InfMedicReviveMinZombies, inf_medic_revive_min_zombies, 3, 1, 10000, CFGFLAG_SERVER, "Min zombies since when revive is possible")
+MACRO_CONFIG_INT(InfMedicReviveDamage, inf_medic_revive_damage, 17, 1, 10000, CFGFLAG_SERVER, "Medic damage on revive")
 // INFCROYA END ------------------------------------------------------------//
 
 #endif
