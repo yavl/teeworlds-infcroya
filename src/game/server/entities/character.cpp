@@ -965,6 +965,14 @@ int CCharacter::GetInfWeaponID(int WID)
 	}
 	return INFWEAPON_NONE;
 }
+int CCharacter::GetLastNoAmmoSound() const
+{
+	return m_LastNoAmmoSound;
+}
+void CCharacter::SetLastNoAmmoSound(int LastNoAmmoSound)
+{
+	m_LastNoAmmoSound = LastNoAmmoSound;
+}
 // INFCROYA END ------------------------------------------------------------//
 
 void CCharacter::OnPredictedInput(CNetObj_PlayerInput *pNewInput)

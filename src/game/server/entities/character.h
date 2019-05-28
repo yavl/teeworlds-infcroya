@@ -111,6 +111,9 @@ public:
 	int m_HookDmgTick;
 	int m_InAirTick;
 	int GetInfWeaponID(int WID);
+
+	int GetLastNoAmmoSound() const;
+	void SetLastNoAmmoSound(int LastNoAmmoSound);
 	// INFCROYA END ------------------------------------------------------------//
 
 private:

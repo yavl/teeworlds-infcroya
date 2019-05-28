@@ -121,6 +121,15 @@ void CBiologist::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CCh
 
 	case WEAPON_LASER: {
 		CGameWorld* pGameWorld = pChr->GameWorld();
+		if (pChr->m_aWeapons[WEAPON_LASER].m_Ammo < 10) {
+			pChr->SetReloadTimer(125 * pChr->Server()->TickSpeed() / 1000);
+			if (pChr->GetLastNoAmmoSound() + pChr->Server()->TickSpeed() <= pChr->Server()->Tick())
+			{
+				pChr->GameServer()->CreateSound(pChr->GetPos(), SOUND_WEAPON_NOAMMO);
+				pChr->SetLastNoAmmoSound(pChr->Server()->Tick());
+			}
+			return;
+		}
 		for (CBiologistMine* pMine = (CBiologistMine*)pGameWorld->FindFirst(CGameWorld::ENTTYPE_BIOLOGIST_MINE); pMine; pMine = (CBiologistMine*)pMine->TypeNext())
 		{
 			if (pMine->m_Owner != pChr->GetPlayer()->GetCID()) continue;
