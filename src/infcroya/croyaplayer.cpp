@@ -213,6 +213,15 @@ void CroyaPlayer::OnKill(int Victim)
 
 void CroyaPlayer::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon)
 {
+	if (Direction.x == 0 && Direction.y == 0) 
+	{
+			Direction.x = 1;
+			
+			char aBuf[128];
+			str_format(aBuf, sizeof(aBuf), "Warning: Weapontype with index '%d' is about to be initialized with zero direction, value modified to prevent crash.", Weapon); 
+			m_pGameServer->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+			
+	}
 	m_pClass->OnWeaponFire(Direction, ProjStartPos, Weapon, m_pCharacter);
 }
 
