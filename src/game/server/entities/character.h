@@ -93,6 +93,7 @@ public:
 	vec2 m_FirstShotCoord;
 	int m_BarrierHintID;
 	array<int> m_BarrierHintIDs;
+	int m_RespawnPointID;
 
 	void Freeze(float Time, int Player, int Reason);
 	void Unfreeze();

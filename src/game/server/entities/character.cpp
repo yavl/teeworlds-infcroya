@@ -73,6 +73,7 @@ CCharacter::CCharacter(CGameWorld *pWorld)
 		{
 			m_BarrierHintIDs[i] = Server()->SnapNewID();
 		}
+		m_RespawnPointID = Server()->SnapNewID();
 	}
 	
 	m_IsFrozen = false;
@@ -136,6 +137,10 @@ void CCharacter::Destroy()
 		if (m_BarrierHintID >= 0) {
 			Server()->SnapFreeID(m_BarrierHintID);
 			m_BarrierHintID = -1;
+		}
+		if (m_RespawnPointID >= 0) {
+			Server()->SnapFreeID(m_RespawnPointID);
+			m_RespawnPointID = -1;
 		}
 
 		if (m_BarrierHintIDs[0] >= 0) {
