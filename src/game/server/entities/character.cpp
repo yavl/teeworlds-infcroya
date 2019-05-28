@@ -1033,6 +1033,25 @@ void CCharacter::Tick()
 
 	// handle Weapons
 	HandleWeapons();
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (m_Poison > 0)
+	{
+		if (m_PoisonTick == 0)
+		{
+			m_Poison--;
+			TakeDamage(vec2(0.0f, 0.0f), vec2(0, 0), 1, m_PoisonFrom, WEAPON_HAMMER);
+			if (m_Poison > 0)
+			{
+				m_PoisonTick = Server()->TickSpeed() / 2;
+			}
+		}
+		else
+		{
+			m_PoisonTick--;
+		}
+	}
+	// INFCROYA END ------------------------------------------------------------//
 }
 
 void CCharacter::TickDefered()
