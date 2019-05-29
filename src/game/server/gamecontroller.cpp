@@ -322,7 +322,7 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 			Type = PICKUP_NINJA;
 	}
 
-	if(Type != -1 && str_comp_nocase(g_Config.m_SvGametype, "mod") != 0) // INFCROYA RELATED, no new CPickup since it crashes the server, maybe because of Respawn Point armor pickup
+	if(Type != -1)
 	{
 		new CPickup(&GameServer()->m_World, Type, Pos);
 		return true;
