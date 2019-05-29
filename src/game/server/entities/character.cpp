@@ -292,7 +292,7 @@ void CCharacter::HandleWeaponSwitch()
 				Next--;
 				// INFCROYA BEGIN ------------------------------------------------------------
 				if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-					GetCroyaPlayer()->OnMouseWheelDown();
+					GetCroyaPlayer()->OnMouseWheelDown(this);
 				}
 				// INFCROYA END ------------------------------------------------------------//
 			}
@@ -308,7 +308,7 @@ void CCharacter::HandleWeaponSwitch()
 				Prev--;
 				// INFCROYA BEGIN ------------------------------------------------------------
 				if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-					GetCroyaPlayer()->OnMouseWheelUp();
+					GetCroyaPlayer()->OnMouseWheelUp(this);
 				}
 				// INFCROYA END ------------------------------------------------------------//
 			}
@@ -377,7 +377,7 @@ void CCharacter::FireWeapon()
 		{
 			// INFCROYA BEGIN ------------------------------------------------------------
 			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_HAMMER);
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_HAMMER, this);
 			}
 			else {
 				// reset objects Hit
@@ -425,7 +425,7 @@ void CCharacter::FireWeapon()
 		{
 			// INFCROYA BEGIN ------------------------------------------------------------
 			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_GUN);
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_GUN, this);
 			}
 			else {
 				new CProjectile(GameWorld(), WEAPON_GUN,
@@ -444,7 +444,7 @@ void CCharacter::FireWeapon()
 		{
 			// INFCROYA BEGIN ------------------------------------------------------------
 			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_SHOTGUN);
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_SHOTGUN, this);
 			}
 			else {
 				int ShotSpread = 2;
@@ -473,7 +473,7 @@ void CCharacter::FireWeapon()
 		{
 			// INFCROYA BEGIN ------------------------------------------------------------
 			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_GRENADE);
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_GRENADE, this);
 			}
 			else {
 				new CProjectile(GameWorld(), WEAPON_GRENADE,
@@ -492,7 +492,7 @@ void CCharacter::FireWeapon()
 		{
 			// INFCROYA BEGIN ------------------------------------------------------------
 			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_LASER);
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_LASER, this);
 			}
 			else {
 				new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
@@ -505,7 +505,7 @@ void CCharacter::FireWeapon()
 		{
 			// INFCROYA BEGIN ------------------------------------------------------------
 			if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
-				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_NINJA);
+				m_pCroyaPlayer->OnWeaponFire(Direction, ProjStartPos, WEAPON_NINJA, this);
 			}
 			else {
 				// reset Hit objects

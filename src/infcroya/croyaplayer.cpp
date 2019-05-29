@@ -211,8 +211,9 @@ void CroyaPlayer::OnKill(int Victim)
 	}
 }
 
-void CroyaPlayer::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon)
+void CroyaPlayer::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CCharacter* pChr)
 {
+	m_pCharacter = pChr;
 	m_pClass->OnWeaponFire(Direction, ProjStartPos, Weapon, m_pCharacter);
 }
 
@@ -221,8 +222,9 @@ void CroyaPlayer::OnButtonF3()
 	SetHookProtected(!IsHookProtected());
 }
 
-void CroyaPlayer::OnMouseWheelDown()
+void CroyaPlayer::OnMouseWheelDown(CCharacter* pChr)
 {
+	m_pCharacter = pChr;
 	if (m_pGameController->IsCroyaWarmup()) {
 		TurnIntoNextHumanClass();
 		m_pClass->OnMouseWheelDown();
@@ -239,8 +241,9 @@ void CroyaPlayer::OnMouseWheelDown()
 	}
 }
 
-void CroyaPlayer::OnMouseWheelUp()
+void CroyaPlayer::OnMouseWheelUp(CCharacter* pChr)
 {
+	m_pCharacter = pChr;
 	if (m_pGameController->IsCroyaWarmup()) {
 		TurnIntoPrevHumanClass();
 		m_pClass->OnMouseWheelUp();

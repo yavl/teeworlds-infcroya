@@ -46,10 +46,10 @@ public:
 	void OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, int Weapon);
 	void OnKill(int Victim);
 
-	void OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon); // called in CCharacter::FireWeapon
+	void OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CCharacter* pChr); // called in CCharacter::FireWeapon
 	void OnButtonF3(); // (... and OnButtonF4) called in CGameContext::OnMessage { ... else if(MsgID == NETMSGTYPE_CL_VOTE) }
-	void OnMouseWheelDown(); // called in CCharacter::HandleWeaponSwitch
-	void OnMouseWheelUp(); // called in CCharacter::HandleWeaponSwitch
+	void OnMouseWheelDown(CCharacter* pChr); // called in CCharacter::HandleWeaponSwitch
+	void OnMouseWheelUp(CCharacter* pChr); // called in CCharacter::HandleWeaponSwitch
 
 	vec2 GetRespawnPointPos() const;
 	int GetRespawnPointsNum() const;
