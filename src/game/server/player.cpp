@@ -336,6 +336,7 @@ void CPlayer::KillCharacter(int Weapon)
 	if(m_pCharacter)
 	{
 		m_pCharacter->Die(m_ClientID, Weapon);
+		m_pCharacter->Reset(); // INFCROYA RELATED, see https://github.com/yavl/teeworlds-infclassR/blob/master/src/game/server/player.cpp#L512
 		delete m_pCharacter;
 		m_pCharacter = 0;
 	}
