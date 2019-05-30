@@ -10,7 +10,7 @@ class CSnapIDPool
 {
 	enum
 	{
-		MAX_IDS = 16*1024,
+		MAX_IDS = 16*2048,
 	};
 
 	class CID
