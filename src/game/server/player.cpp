@@ -110,6 +110,14 @@ void CPlayer::Tick()
 		{
 			if(m_pCharacter->IsAlive())
 				m_ViewPos = m_pCharacter->GetPos();
+			// INFCROYA BEGIN ------------------------------------------------------------
+			// see https://github.com/yavl/teeworlds-infclassR/blob/84528145d5e285fb4d7cf8ad9663255f3568c38a/src/game/server/player.cpp#L122
+			else {
+				m_pCharacter->Destroy();
+				delete m_pCharacter;
+				m_pCharacter = 0;
+			}
+			// INFCROYA END ------------------------------------------------------------//
 		}
 		else if(m_Spawning && m_RespawnTick <= Server()->Tick())
 			TryRespawn();
