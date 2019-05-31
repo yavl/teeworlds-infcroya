@@ -38,7 +38,7 @@ function infc_init()
 		if case == 3 then
 			circle_positions = { 
 				-- x, y, radius, minradius
-				171, 69, min_radius, min_radius, circle_shrink_speed,
+				171, 69, default_radius, min_radius, circle_shrink_speed,
 			}
 		end
 	end
