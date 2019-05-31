@@ -4,7 +4,7 @@ default_radius = 6500
 min_radius = 800
 circle_shrink_speed = 1
 default_inf_radius = 360
-timelimit = 3
+timelimit = 4
 
 circle_positions = {}
 
@@ -24,14 +24,14 @@ function infc_init()
 		if case == 1 then
 			circle_positions = { 
 				-- x, y, radius, minradius
-				83, 76, min_radius, min_radius, circle_shrink_speed,
+				83, 76, default_radius, min_radius, circle_shrink_speed,
 			}
 		end
 		
 		if case == 2 then
 			circle_positions = { 
 				-- x, y, radius, minradius
-				18, 63, min_radius, min_radius, circle_shrink_speed,
+				18, 63, default_radius, min_radius, circle_shrink_speed,
 			}
 		end
 		
