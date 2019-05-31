@@ -43,12 +43,12 @@ void CSoldierBomb::Explode()
 	vec2 dir = normalize(OwnerChar->GetPos() - m_Pos);
 	
 	GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
-	GameServer()->CreateExplosion(m_Pos, m_Owner, WEAPON_HAMMER, MAX_DAMAGE);
+	GameServer()->CreateExplosion(m_Pos, m_Owner, WEAPON_HAMMER, MAX_DAMAGE, true);
 	for(int i=0; i<6; i++)
 	{
 		float angle = static_cast<float>(i)*2.0*pi/6.0;
 		vec2 expPos = m_Pos + vec2(90.0*cos(angle), 90.0*sin(angle));
-		GameServer()->CreateExplosion(expPos, m_Owner, WEAPON_HAMMER, MAX_DAMAGE);
+		GameServer()->CreateExplosion(expPos, m_Owner, WEAPON_HAMMER, MAX_DAMAGE, true);
 	}
 	for(int i=0; i<12; i++)
 	{
@@ -56,7 +56,7 @@ void CSoldierBomb::Explode()
 		vec2 expPos = vec2(180.0*cos(angle), 180.0*sin(angle));
 		if(dot(expPos, dir) <= 0)
 		{
-			GameServer()->CreateExplosion(m_Pos + expPos, m_Owner, WEAPON_HAMMER, MAX_DAMAGE);
+			GameServer()->CreateExplosion(m_Pos + expPos, m_Owner, WEAPON_HAMMER, MAX_DAMAGE, true);
 		}
 	}
 	
