@@ -1,4 +1,4 @@
-*Note that this is a 0.7 teeworlds mod, if you are looking for 0.6 version (DDNet-compatible), check [InfClassR](https://github.com/yavl/teeworlds-infclassr)*
+###### *Note that this is a 0.7 teeworlds mod, if you are looking for 0.6 version (DDNet-compatible), check [InfClassR](https://github.com/yavl/teeworlds-infclassr)*
 
 # Teeworlds InfCroya
 InfClass with battle royale elements for Teeworlds 0.7+ based on [InfClass by necropotame](https://github.com/necropotame/teeworlds-infclass). InfCroya stands for "InfClass Royale".
