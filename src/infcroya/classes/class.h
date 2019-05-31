@@ -46,5 +46,6 @@ enum Class {
 
 	ZOMBIE_CLASS_START,
 	SMOKER,
+	BOOMER,
 	ZOMBIE_CLASS_END,
 };
