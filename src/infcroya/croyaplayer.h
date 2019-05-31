@@ -3,6 +3,8 @@
 #include <base/vmath.h>
 #include <unordered_map>
 #include <string>
+#include <generated/protocol.h>
+#include <game/gamecore.h>
 
 class CroyaPlayer {
 private:
@@ -24,6 +26,7 @@ private:
 	vec2 m_RespawnPointPos;
 	int m_RespawnPointDefaultCooldown; // in seconds
 	int m_RespawnPointCooldown; // in seconds
+	int m_AirJumpCounter;
 public:
 	CroyaPlayer(int ClientID, CPlayer* pPlayer, CGameContext* pGameServer, CGameControllerMOD* pGameController, std::unordered_map<int, class IClass*> Classes);
 	~CroyaPlayer();
