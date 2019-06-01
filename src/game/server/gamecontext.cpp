@@ -1099,27 +1099,31 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		}
 		else if(MsgID == NETMSGTYPE_CL_SKINCHANGE)
 		{
-			if(pPlayer->m_LastChangeInfo && pPlayer->m_LastChangeInfo+Server()->TickSpeed()*5 > Server()->Tick())
-				return;
+			// INFCROYA BEGIN ------------------------------------------------------------
+			if (str_comp_nocase(g_Config.m_SvGametype, "mod") != 0) { // no skin changes for InfCroya
+				if (pPlayer->m_LastChangeInfo && pPlayer->m_LastChangeInfo + Server()->TickSpeed() * 5 > Server()->Tick())
+					return;
 
-			pPlayer->m_LastChangeInfo = Server()->Tick();
-			CNetMsg_Cl_SkinChange *pMsg = (CNetMsg_Cl_SkinChange *)pRawMsg;
+				pPlayer->m_LastChangeInfo = Server()->Tick();
+				CNetMsg_Cl_SkinChange* pMsg = (CNetMsg_Cl_SkinChange*)pRawMsg;
 
-			for(int p = 0; p < NUM_SKINPARTS; p++)
-			{
-				str_copy(pPlayer->m_TeeInfos.m_aaSkinPartNames[p], pMsg->m_apSkinPartNames[p], 24);
-				pPlayer->m_TeeInfos.m_aUseCustomColors[p] = pMsg->m_aUseCustomColors[p];
-				pPlayer->m_TeeInfos.m_aSkinPartColors[p] = pMsg->m_aSkinPartColors[p];
+				for (int p = 0; p < NUM_SKINPARTS; p++)
+				{
+					str_copy(pPlayer->m_TeeInfos.m_aaSkinPartNames[p], pMsg->m_apSkinPartNames[p], 24);
+					pPlayer->m_TeeInfos.m_aUseCustomColors[p] = pMsg->m_aUseCustomColors[p];
+					pPlayer->m_TeeInfos.m_aSkinPartColors[p] = pMsg->m_aSkinPartColors[p];
+				}
+
+				// update all clients
+				for (int i = 0; i < MAX_CLIENTS; ++i)
+				{
+					if (!m_apPlayers[i] || (!Server()->ClientIngame(i) && !m_apPlayers[i]->IsDummy()) || Server()->GetClientVersion(i) < MIN_SKINCHANGE_CLIENTVERSION)
+						continue;
+
+					SendSkinChange(pPlayer->GetCID(), i);
+				}
 			}
-
-			// update all clients
-			for(int i = 0; i < MAX_CLIENTS; ++i)
-			{
-				if(!m_apPlayers[i] || (!Server()->ClientIngame(i) && !m_apPlayers[i]->IsDummy()) || Server()->GetClientVersion(i) < MIN_SKINCHANGE_CLIENTVERSION)
-					continue;
-
-				SendSkinChange(pPlayer->GetCID(), i);
-			}
+			// INFCROYA END ------------------------------------------------------------//
 		}
 	}
 	else
