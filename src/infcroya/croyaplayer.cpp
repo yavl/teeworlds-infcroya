@@ -29,6 +29,7 @@ CroyaPlayer::CroyaPlayer(int ClientID, CPlayer* pPlayer, CGameContext* pGameServ
 	m_RespawnPointPos = vec2(0, 0);
 	m_RespawnPointDefaultCooldown = 3;
 	m_RespawnPointCooldown = 0;
+	m_AirJumpCounter = 0;
 }
 
 CroyaPlayer::~CroyaPlayer()
@@ -99,6 +100,17 @@ void CroyaPlayer::Tick()
 					}
 				}
 			}
+		}
+	}
+	
+	if (GetClassNum() == Class::HUNTER && m_pCharacter)
+	{
+		//Double jumps
+		if(m_pCharacter->IsGrounded()) m_AirJumpCounter = 0;
+		if(m_pCharacter->GetCharacterCore().m_TriggeredEvents&COREEVENTFLAG_AIR_JUMP && m_AirJumpCounter < 1)
+		{
+			m_pCharacter->GetCharacterCore().m_Jumped &= ~2;
+			m_AirJumpCounter++;
 		}
 	}
 }
