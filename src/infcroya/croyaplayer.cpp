@@ -110,7 +110,7 @@ void CroyaPlayer::Tick()
 		}
 	}
 	
-	if (m_pCharacter && m_pClass && m_pCharacter->GameServer() && m_pCharacter->GameWorld()) { // so many null checks, not sure which are necessary
+	if (m_pCharacter && m_pClass && m_pCharacter->GameWorld()) { // so many null checks, not sure which are necessary
 		m_pClass->Tick(m_pCharacter);
 	}
 }

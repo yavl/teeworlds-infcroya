@@ -66,3 +66,4 @@ bin/server
 bin/serverlaunch
 src/.vscode/*
 bin/infcroya.txt
+.DS_Store
