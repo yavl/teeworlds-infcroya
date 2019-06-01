@@ -24,7 +24,7 @@ public:
 	void SetBodyColor(int H, int S, int L);
 
 	int GetMarkingColor() const;
-	void SetMarkingColor(int H, int S, int L);
+	void SetMarkingColor(int H, int S, int L, int Alpha = 255);
 
 	int GetDecorationColor() const;
 	void SetDecorationColor(int H, int S, int L);
@@ -56,5 +56,5 @@ public:
 	const char* GetEyesName() const;
 	void SetEyesName(const char* name);
 
-	static int HSLtoInt(int H, int S, int L);
+	static int HSLtoInt(int H, int S, int L, int Alpha = 255);
 };

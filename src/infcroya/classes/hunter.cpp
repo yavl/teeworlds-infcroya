@@ -9,7 +9,7 @@ CHunter::CHunter() : IClass()
 	CSkin skin;
 	skin.SetBodyColor(58, 200, 79);
 	skin.SetMarkingName("warpaint");
-	skin.SetMarkingColor(20, 20, 20);
+	skin.SetMarkingColor(58, 255, 100);
 	skin.SetFeetColor(0, 79, 70);
 	SetSkin(skin);
 	SetInfectedClass(true);

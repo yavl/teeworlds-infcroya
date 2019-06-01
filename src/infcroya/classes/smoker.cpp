@@ -9,7 +9,7 @@ CSmoker::CSmoker() : IClass()
 	CSkin skin;
 	skin.SetBodyColor(58, 200, 79);
 	skin.SetMarkingName("cammostripes");
-	skin.SetMarkingColor(0, 0, 0);
+	skin.SetMarkingColor(0, 0, 0, 200);
 	skin.SetFeetColor(0, 79, 70);
 	SetSkin(skin);
 	SetInfectedClass(true);

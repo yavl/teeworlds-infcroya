@@ -34,9 +34,9 @@ int CSkin::GetMarkingColor() const
 	return m_MarkingColor;
 }
 
-void CSkin::SetMarkingColor(int H, int S, int L)
+void CSkin::SetMarkingColor(int H, int S, int L, int Alpha)
 {
-	m_MarkingColor = HSLtoInt(H, S, L);
+	m_MarkingColor = HSLtoInt(H, S, L, Alpha);
 }
 
 int CSkin::GetDecorationColor() const
@@ -151,12 +151,12 @@ void CSkin::SetEyesName(const char* name)
 	str_copy(m_EyesName, SkinName, STRING_LENGTH);
 }
 
-int CSkin::HSLtoInt(int H, int S, int L)
+int CSkin::HSLtoInt(int H, int S, int L, int Alpha)
 {
 	int color = 0;
 	color = (color & 0xFF00FFFF) | (H << 16);
 	color = (color & 0xFFFF00FF) | (S << 8);
 	color = (color & 0xFFFFFF00) | L;
-	color = (color & 0x00FFFFFF) | (255 << 24);
+	color = (color & 0x00FFFFFF) | (Alpha << 24);
 	return color;
 }

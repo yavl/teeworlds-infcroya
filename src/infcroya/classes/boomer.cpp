@@ -10,7 +10,7 @@ CBoomer::CBoomer() : IClass()
 	CSkin skin;
 	skin.SetBodyColor(58, 200, 79);
 	skin.SetMarkingName("saddo");
-	skin.SetMarkingColor(20, 20, 20);
+	skin.SetMarkingColor(0, 0, 0, 120);
 	skin.SetFeetColor(0, 79, 70);
 	SetSkin(skin);
 	SetInfectedClass(true);
