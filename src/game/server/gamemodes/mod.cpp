@@ -11,6 +11,7 @@
 #include <infcroya/classes/biologist.h>
 #include <infcroya/classes/smoker.h>
 #include <infcroya/classes/boomer.h>
+#include <infcroya/classes/hunter.h>
 #include <infcroya/classes/engineer.h>
 #include <infcroya/classes/soldier.h>
 #include <infcroya/classes/scientist.h>
@@ -73,6 +74,8 @@ CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
 	classes[Class::MERCENARY] = new CMercenary();
 	classes[Class::SMOKER] = new CSmoker();
 	classes[Class::BOOMER] = new CBoomer();
+	classes[Class::HUNTER] = new CHunter();
+  
 	LuaLoader temp(GameServer());
 	std::string path_to_lua("maps/");
 	path_to_lua += g_Config.m_SvMap;
