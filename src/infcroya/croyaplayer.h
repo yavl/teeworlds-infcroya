@@ -27,6 +27,8 @@ private:
 	int m_RespawnPointDefaultCooldown; // in seconds
 	int m_RespawnPointCooldown; // in seconds
 	int m_AirJumpCounter;
+
+	bool m_InsideInfectionZone;
 public:
 	CroyaPlayer(int ClientID, CPlayer* pPlayer, CGameContext* pGameServer, CGameControllerMOD* pGameController, std::unordered_map<int, class IClass*> Classes);
 	~CroyaPlayer();
@@ -72,6 +74,10 @@ public:
 	void TurnIntoPrevHumanClass();
 	void TurnIntoRandomZombie();
 	void TurnIntoRandomHuman();
+
+	void TurnIntoPrevZombieClass();
+	bool IsInsideInfectionZone() const;
+	void SetInsideInfectionZone(bool InsideInfectionZone);
 
 	bool IsHookProtected() const;
 	void SetHookProtected(bool HookProtected);

@@ -30,6 +30,8 @@ CroyaPlayer::CroyaPlayer(int ClientID, CPlayer* pPlayer, CGameContext* pGameServ
 	m_RespawnPointDefaultCooldown = 3;
 	m_RespawnPointCooldown = 0;
 	m_AirJumpCounter = 0;
+
+	m_InsideInfectionZone = false;
 }
 
 CroyaPlayer::~CroyaPlayer()
@@ -38,6 +40,8 @@ CroyaPlayer::~CroyaPlayer()
 
 void CroyaPlayer::Tick()
 {
+	SetInsideInfectionZone(false);
+
 	if (IsHuman() && m_pCharacter) {
 		// Infect when inside infection zone circle
 		auto circle = GetClosestInfCircle();
@@ -67,6 +71,9 @@ void CroyaPlayer::Tick()
 			if (dist < inf_circle->GetRadius() && m_pGameServer->Server()->Tick() % m_pGameServer->Server()->TickSpeed() == 0) { // each second
 				m_pCharacter->IncreaseHealth(2);
 				m_RespawnPointsNum = m_RespawnPointsDefaultNum;
+			}
+			if (dist < inf_circle->GetRadius()) {
+				SetInsideInfectionZone(true);
 			}
 		}
 	}
@@ -260,6 +267,10 @@ void CroyaPlayer::OnMouseWheelUp(CCharacter* pChr)
 		TurnIntoPrevHumanClass();
 		m_pClass->OnMouseWheelUp();
 	}
+
+	if (IsZombie() && IsInsideInfectionZone()) {
+		TurnIntoPrevZombieClass();
+	}
 }
 
 vec2 CroyaPlayer::GetRespawnPointPos() const
@@ -350,6 +361,27 @@ void CroyaPlayer::TurnIntoRandomHuman()
 	// Class::HUMAN_CLASS_START + 2 because of DEFAULT. DEFAULT comes right after HUMAN_CLASS_START
 	int RandomHumanClass = random_int_range(Class::HUMAN_CLASS_START + 2, Class::HUMAN_CLASS_END - 1);
 	SetClassNum(RandomHumanClass, true);
+}
+
+void CroyaPlayer::TurnIntoPrevZombieClass()
+{
+	int PrevClass = GetClassNum() - 1;
+	int LastClass = Class::ZOMBIE_CLASS_END - 1;
+	bool NotInRange = !(PrevClass > ZOMBIE_CLASS_START && PrevClass < ZOMBIE_CLASS_END);
+
+	if (PrevClass == Class::ZOMBIE_CLASS_START || NotInRange)
+		PrevClass = LastClass;
+	SetClassNum(PrevClass);
+}
+
+bool CroyaPlayer::IsInsideInfectionZone() const
+{
+	return m_InsideInfectionZone;
+}
+
+void CroyaPlayer::SetInsideInfectionZone(bool InsideInfectionZone)
+{
+	m_InsideInfectionZone = InsideInfectionZone;
 }
 
 bool CroyaPlayer::IsHookProtected() const

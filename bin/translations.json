@@ -42,6 +42,16 @@
 	},
 	{
 		"context": "russian",
+		"or": "Boomer",
+		"tr": "Взрывун"
+	},
+	{
+		"context": "russian",
+		"or": "Hunter",
+		"tr": "Охотник"
+	},
+	{
+		"context": "russian",
 		"or": "Infected won the round in %d seconds",
 		"tr": "Зараженные выиграли раунд за %d секунд"
 	},
@@ -100,6 +110,16 @@
 		"context": "german",
 		"or": "Mercenary",
 		"tr": "Söldner"
+	},
+	{
+		"context": "german",
+		"or": "Boomer",
+		"tr": "Bomber"
+	},
+	{
+		"context": "german",
+		"or": "Hunter",
+		"tr": "Jäger"
 	},
 	{
 		"context": "german",
@@ -164,6 +184,16 @@
 	},
 	{
 		"context": "ukrainian",
+		"or": "Boomer",
+		"tr": "Вибуховий"
+	},
+	{
+		"context": "ukrainian",
+		"or": "Hunter",
+		"tr": "Мисливець"
+	},
+	{
+		"context": "ukrainian",
 		"or": "Infected won the round in %d seconds",
 		"tr": "Заражені виграли раунд за %d секунд"
 	},
@@ -222,6 +252,16 @@
 		"context": "french",
 		"or": "Mercenary",
 		"tr": "Mercenaire"
+	},
+	{
+		"context": "french",
+		"or": "Boomer",
+		"tr": "Boomer"
+	},
+	{
+		"context": "french",
+		"or": "Hunter",
+		"tr": "Chasseur"
 	},
 	{
 		"context": "french",
@@ -286,6 +326,16 @@
 	},
 	{
 		"context": "spanish",
+		"or": "Boomer",
+		"tr": "Boomer"
+	},
+	{
+		"context": "spanish",
+		"or": "Hunter",
+		"tr": "Cazador"
+	},
+	{
+		"context": "spanish",
 		"or": "Infected won the round in %d seconds",
 		"tr": "Los infectados han ganado la ronda en %d segundos"
 	},
@@ -347,6 +397,16 @@
 	},
 	{
 		"context": "polish",
+		"or": "Boomer",
+		"tr": "Wybuchacz"
+	},
+	{
+		"context": "polish",
+		"or": "Hunter",
+		"tr": "Łowca"
+	},
+	{
+		"context": "polish",
 		"or": "Infected won the round in %d seconds",
 		"tr": "Zainfekowani wygrali grę w %d sekund"
 	},
@@ -405,6 +465,16 @@
 		"context": "hungarian",
 		"or": "Mercenary",
 		"tr": "Zsoldos"
+	},
+	{
+		"context": "hungarian",
+		"or": "Boomer",
+		"tr": "Bomba"
+	},
+	{
+		"context": "hungarian",
+		"or": "Hunter",
+		"tr": "Vadász"
 	},
 	{
 		"context": "hungarian",
