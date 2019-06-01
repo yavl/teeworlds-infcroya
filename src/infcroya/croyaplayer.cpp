@@ -110,15 +110,8 @@ void CroyaPlayer::Tick()
 		}
 	}
 	
-	if (GetClassNum() == Class::HUNTER && m_pCharacter)
-	{
-		//Double jumps
-		if(m_pCharacter->IsGrounded()) m_AirJumpCounter = 0;
-		if(m_pCharacter->GetCharacterCore().m_TriggeredEvents&COREEVENTFLAG_AIR_JUMP && m_AirJumpCounter < 1)
-		{
-			m_pCharacter->GetCharacterCore().m_Jumped &= ~2;
-			m_AirJumpCounter++;
-		}
+	if (m_pCharacter && m_pClass && m_pCharacter->GameServer() && m_pCharacter->GameWorld()) { // so many null checks, not sure which are necessary
+		m_pClass->Tick(m_pCharacter);
 	}
 }
 
@@ -382,6 +375,16 @@ bool CroyaPlayer::IsInsideInfectionZone() const
 void CroyaPlayer::SetInsideInfectionZone(bool InsideInfectionZone)
 {
 	m_InsideInfectionZone = InsideInfectionZone;
+}
+
+int CroyaPlayer::GetAirJumpCounter() const
+{
+	return m_AirJumpCounter;
+}
+
+void CroyaPlayer::SetAirJumpCounter(int AirJumpCounter)
+{
+	m_AirJumpCounter = AirJumpCounter;
 }
 
 bool CroyaPlayer::IsHookProtected() const

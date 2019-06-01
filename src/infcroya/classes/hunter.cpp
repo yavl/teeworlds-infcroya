@@ -24,6 +24,18 @@ void CHunter::InitialWeaponsHealth(CCharacter* pChr)
 	pChr->SetNormalEmote(EMOTE_ANGRY);
 }
 
+void CHunter::Tick(CCharacter* pChr)
+{
+	//Double jumps
+	CroyaPlayer* cp = pChr->GetCroyaPlayer();
+	if (pChr->IsGrounded()) cp->SetAirJumpCounter(0);
+	if (pChr->GetCharacterCore().m_TriggeredEvents & COREEVENTFLAG_AIR_JUMP && cp->GetAirJumpCounter() < 1)
+	{
+		pChr->GetCharacterCore().m_Jumped &= ~2;
+		cp->SetAirJumpCounter(cp->GetAirJumpCounter() + 1);
+	}
+}
+
 void CHunter::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CCharacter* pChr)
 {
 	int ClientID = pChr->GetPlayer()->GetCID();

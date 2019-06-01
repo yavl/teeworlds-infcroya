@@ -6,6 +6,10 @@ IClass::~IClass()
 {
 }
 
+void IClass::Tick(CCharacter* pChr)
+{
+}
+
 void IClass::OnMouseWheelDown()
 {
 }

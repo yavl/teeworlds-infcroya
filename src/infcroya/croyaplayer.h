@@ -79,6 +79,9 @@ public:
 	bool IsInsideInfectionZone() const;
 	void SetInsideInfectionZone(bool InsideInfectionZone);
 
+	int GetAirJumpCounter() const;
+	void SetAirJumpCounter(int AirJumpCounter);
+
 	bool IsHookProtected() const;
 	void SetHookProtected(bool HookProtected);
 
