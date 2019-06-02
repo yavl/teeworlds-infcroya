@@ -12,6 +12,7 @@
 #include <infcroya/classes/smoker.h>
 #include <infcroya/classes/boomer.h>
 #include <infcroya/classes/hunter.h>
+#include <infcroya/classes/undead.h>
 #include <infcroya/classes/engineer.h>
 #include <infcroya/classes/soldier.h>
 #include <infcroya/classes/scientist.h>
@@ -75,6 +76,7 @@ CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
 	classes[Class::SMOKER] = new CSmoker();
 	classes[Class::BOOMER] = new CBoomer();
 	classes[Class::HUNTER] = new CHunter();
+	classes[Class::UNDEAD] = new CUndead();
   
 	LuaLoader temp(GameServer());
 	std::string path_to_lua("maps/");
@@ -440,8 +442,8 @@ int CGameControllerMOD::OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, 
 {
 	int ClientID = pVictim->GetPlayer()->GetCID();
 
-	players[ClientID]->OnCharacterDeath(pVictim, pKiller, Weapon);
-	return 0;
+	int deathType = players[ClientID]->OnCharacterDeath(pVictim, pKiller, Weapon);
+	return deathType;
 }
 
 bool CGameControllerMOD::IsFriendlyFire(int ClientID1, int ClientID2) const

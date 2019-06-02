@@ -50,5 +50,6 @@ enum Class {
 	SMOKER,
 	BOOMER,
 	HUNTER,
+	UNDEAD,
 	ZOMBIE_CLASS_END,
 };

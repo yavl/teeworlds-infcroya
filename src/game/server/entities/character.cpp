@@ -764,8 +764,8 @@ CCharacterCore& CCharacter::GetCharacterCore()
 
 void CCharacter::Freeze(float Time, int Player, int Reason)
 {
-	//if (m_IsFrozen && m_FreezeReason == FREEZEREASON_UNDEAD)
-	//	return;
+	if (m_IsFrozen && m_FreezeReason == FREEZEREASON_UNDEAD)
+		return;
 
 	m_IsFrozen = true;
 	m_FrozenTime = Server()->TickSpeed() * Time;
@@ -1190,6 +1190,9 @@ void CCharacter::Die(int Killer, int Weapon)
 	}
 	else {
 		ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+		
+		if (ModeSpecial == DEATH_TYPE_UNDEAD) return;
+		
 	}
 	// INFCROYA END ------------------------------------------------------------//
 

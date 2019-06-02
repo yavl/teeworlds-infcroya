@@ -201,14 +201,15 @@ void CroyaPlayer::OnCharacterSpawn(CCharacter* pChr)
 	m_pCharacter->SetCroyaPlayer(this);
 }
 
-void CroyaPlayer::OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, int Weapon)
+int CroyaPlayer::OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, int Weapon)
 {
-	m_pClass->OnCharacterDeath(pVictim, pKiller, Weapon);
+	int deathtype = m_pClass->OnCharacterDeath(pVictim, pKiller, Weapon);
 	if (IsHuman()) {
 		SetOldClassNum(GetClassNum());
 		TurnIntoRandomZombie();
 	}
 	m_pCharacter = nullptr;
+	return deathtype;
 }
 
 void CroyaPlayer::OnKill(int Victim)

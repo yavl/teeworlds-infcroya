@@ -48,7 +48,7 @@ public:
 	int GetClientID() const;
 
 	void OnCharacterSpawn(CCharacter* pChr);
-	void OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, int Weapon);
+	int OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, int Weapon);
 	void OnKill(int Victim);
 
 	void OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CCharacter* pChr); // called in CCharacter::FireWeapon

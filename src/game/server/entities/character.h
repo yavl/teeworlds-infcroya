@@ -15,6 +15,13 @@ enum
 	FREEZEREASON_FLASH = 0,
 	FREEZEREASON_UNDEAD = 1
 };
+
+
+enum // different death types
+{
+	DEATH_TYPE_ORDINARY = 0,
+	DEATH_TYPE_UNDEAD = 1
+};
 // INFCROYA END ------------------------------------------------------------//
 
 class CCharacter : public CEntity
