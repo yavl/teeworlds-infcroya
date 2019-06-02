@@ -667,9 +667,9 @@ void IGameController::StartMatch()
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 	// INFCROYA BEGIN ------------------------------------------------------------
 	for (CroyaPlayer* cp : m_MOD->GetCroyaPlayers()) {
-		if (cp) {
-			cp->SetClassNum(Class::DEFAULT);
-		}
+		if (!cp || !cp->GetCharacter() || !cp->GetCharacter()->GameWorld())
+			continue;
+		cp->SetClassNum(Class::DEFAULT);
 	}
 	// INFCROYA END ------------------------------------------------------------//
 }

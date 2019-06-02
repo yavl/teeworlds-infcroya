@@ -179,7 +179,7 @@ void CGameControllerMOD::Tick()
 	bool IsGameStarted = !IsCroyaWarmup() && !IsGameEnd();
 
 	if (IsGameStarted && GetRealPlayerNum() < 2) {
-		// OnRoundEnd(); // causes server crash here if someone joins the game during end game score show
+		OnRoundEnd();
 	}
 
 	if (IsGameStarted) {
