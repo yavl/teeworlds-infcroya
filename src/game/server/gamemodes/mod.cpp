@@ -715,7 +715,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 		/* tr - Turkish ************************************/
 	case 31: //Azerbaijan
 	case 792: //Turkey
-		// set to turkish
+		players[ClientID]->SetLanguage("turkish");
 		break;
 		/* uk - Ukrainian **********************************/
 	case 804: //Ukraine

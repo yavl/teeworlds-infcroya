@@ -491,5 +491,76 @@
 		"or": "You have survived, +5 points",
 		"tr": "Túlélted az inváziót, +5 pont"
 	},
+	
+	
+	
+	
+	
+	
+	{
+		"context": "turkish",
+		"or": "Random choice",
+		"tr": "Rastgele seçim"
+	},
+	{
+		"context": "turkish",
+		"or": "Biologist",
+		"tr": "Biyolog"
+	},
+	{
+		"context": "turkish",
+		"or": "Smoker",
+		"tr": "Dumancı"
+	},
+	{
+		"context": "turkish",
+		"or": "Medic",
+		"tr": "Doktor"
+	},
+	{
+		"context": "turkish",
+		"or": "Engineer",
+		"tr": "Mühendis"
+	},
+	{
+		"context": "turkish",
+		"or": "Soldier",
+		"tr": "Asker"
+	},
+	{
+		"context": "turkish",
+		"or": "Scientist",
+		"tr": "Bilim adamı"
+	},
+	{
+		"context": "turkish",
+		"or": "Mercenary",
+		"tr": "Paralı asker"
+	},
+	{
+		"context": "turkish",
+		"or": "Boomer",
+		"tr": "Patlayıcı"
+	},
+	{
+		"context": "turkish",
+		"or": "Hunter",
+		"tr": "Avcı"
+	},
+	{
+		"context": "turkish",
+		"or": "Infected won the round in %d seconds",
+		"tr": "Zombiler bu eli %d sürede kazandılar saniye"
+	},
+	{
+		"context": "turkish",
+		"or": "%d humans won the round",
+		"tr": "%d insan bu eli kazandı"
+	},
+	{
+		"context": "turkish",
+		"or": "You have survived, +5 points",
+		"tr": "Hayatta kaldınız, +5 puan"
+	},
 ]
 }
