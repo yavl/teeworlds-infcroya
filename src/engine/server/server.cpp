@@ -147,6 +147,29 @@ void CSnapIDPool::FreeID(int ID)
 	}
 }
 
+// INFCROYA BEGIN ------------------------------------------------------------
+int CSnapIDPool::GetIDCount()
+{
+	int Count = 0;
+	for (int i = 0; i < MAX_IDS; i++)
+	{
+		if (m_aIDs[i].m_State == 1)
+			Count++;
+	}
+	return Count;
+}
+
+void CServer::ConGetIDCount(IConsole::IResult* pResult, void* pUser)
+{
+	CServer* pThis = (CServer*)pUser;
+	int IDCount = pThis->m_IDPool.GetIDCount();
+	int IDPercent = (int)(((float)IDCount / pThis->m_IDPool.GetMaxIDs()) * 100);
+	char aBuff[128];
+	str_format(aBuff, sizeof(aBuff), "IDCount: %i - InPercent: %i%%", IDCount, IDPercent);
+	pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuff);
+}
+// INFCROYA END ------------------------------------------------------------//
+
 
 void CServerBan::InitServerBan(IConsole *pConsole, IStorage *pStorage, CServer* pServer)
 {
@@ -1821,6 +1844,10 @@ void CServer::RegisterCommands()
 	Console()->Chain("mod_command", ConchainModCommandUpdate, this);
 	Console()->Chain("console_output_level", ConchainConsoleOutputLevelUpdate, this);
 	Console()->Chain("sv_rcon_password", ConchainRconPasswordSet, this);
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+	Console()->Register("print_idcount", "", CFGFLAG_SERVER, ConGetIDCount, this, "prints how many entity ids are currently used - useful for debugging");
+	// INFCROYA END ------------------------------------------------------------//
 
 	// register console commands in sub parts
 	m_ServerBan.InitServerBan(Console(), Storage(), this);

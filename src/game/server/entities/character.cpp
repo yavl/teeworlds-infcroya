@@ -1224,6 +1224,7 @@ void CCharacter::Die(int Killer, int Weapon)
 
 	// INFCROYA BEGIN ------------------------------------------------------------
 	DestroyChildEntities();
+	Destroy();
 	// INFCROYA END ------------------------------------------------------------//
 }
 
