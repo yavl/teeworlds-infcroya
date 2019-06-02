@@ -1246,6 +1246,9 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 		if ((ClassNum == Class::SOLDIER && m_ActiveWeapon == WEAPON_GRENADE) || (ClassNum == Class::SCIENTIST && m_ActiveWeapon == WEAPON_LASER)) {
 			return false;
 		}
+		if (ClassNum == Class::BOOMER) {
+			return false;
+		}
 	}
 	// INFCROYA END ------------------------------------------------------------//
 

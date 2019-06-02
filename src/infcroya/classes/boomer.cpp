@@ -40,7 +40,7 @@ void CBoomer::OnWeaponFire(vec2 Direction, vec2 ProjStartPos, int Weapon, CChara
 
 int CBoomer::OnCharacterDeath(CCharacter* pVictim, CPlayer* pKiller, int Weapon)
 {
-	//BoomerExplosion(pVictim);
+	BoomerExplosion(pVictim);
 	return 0;
 }
 
