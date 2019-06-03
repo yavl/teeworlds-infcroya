@@ -698,6 +698,7 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 	case 112: //Belarus
 	case 643: //Russia
 	case 398: //Kazakhstan
+	case 498: //Moldova
 		players[ClientID]->SetLanguage("russian");
 		break;
 		/* sk - Slovak ************************************/
