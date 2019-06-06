@@ -191,8 +191,7 @@ void CGameContext::CreateExplosionDisk(vec2 Pos, float InnerRadius, float Damage
 			float DamageToDeal = 1 + ((Damage - 1) * len);
 			if (apEnts[i]->IsZombie())
 				apEnts[i]->IncreaseOverallHp(DamageToDeal);
-			else
-				apEnts[i]->TakeDamage(ForceDir * Force * len, Diff * -1, DamageToDeal, Owner, Weapon);
+			apEnts[i]->TakeDamage(ForceDir * Force * len, Diff * -1, DamageToDeal, Owner, Weapon);
 		}
 	}
 	
