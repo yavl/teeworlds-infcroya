@@ -95,6 +95,12 @@ CGameControllerMOD::~CGameControllerMOD()
 	if (m_GrowingMap) delete[] m_GrowingMap;
 
 	delete lua;
+
+	for (CPlayer* pPlayer : GameServer()->m_apPlayers) {
+		if (pPlayer && pPlayer->GetCharacter()) {
+			pPlayer->GetCharacter()->Destroy();
+		}
+	}
 }
 
 void CGameControllerMOD::Snap(int SnappingClient)
