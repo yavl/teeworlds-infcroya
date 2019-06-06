@@ -1297,7 +1297,14 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 	// check for death
 	if(m_Health <= 0)
 	{
-		Die(From, Weapon);
+		// INFCROYA BEGIN ------------------------------------------------------------
+		if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0 && IsHuman() && From != GetPlayer()->GetCID()) {
+			Infect(From);
+		}
+		else {
+			Die(From, Weapon);
+		}
+		// INFCROYA END ------------------------------------------------------------//
 
 		// set attacker's face to happy (taunt!)
 		if (From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
