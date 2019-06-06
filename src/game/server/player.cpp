@@ -484,6 +484,12 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 
 void CPlayer::TryRespawn()
 {
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if (GetCroyaPlayer()->GetGameControllerMOD()->IsExplosionStarted()) {
+		return;
+	}
+	// INFCROYA END ------------------------------------------------------------//
+
 	vec2 SpawnPos;
 
 	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos))
@@ -497,7 +503,7 @@ void CPlayer::TryRespawn()
 			m_pCharacter->Spawn(this, SpawnPos);
 			GameServer()->CreatePlayerSpawn(SpawnPos);
 		}
-		else if (!GetCroyaPlayer()->GetGameControllerMOD()->IsExplosionStarted()) {
+		else if (GetCroyaPlayer()->IsZombie()) {
 			m_pCharacter->Spawn(this, SpawnPos);
 		}
 	}
