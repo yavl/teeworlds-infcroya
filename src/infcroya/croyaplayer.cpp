@@ -482,8 +482,5 @@ void CroyaPlayer::SetClass(IClass* pClass, bool DrawPurpleThing)
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "%s", m_pClass->GetName().c_str());
-	if (str_comp(GetLanguage(), "english") == 0)
-		m_pGameServer->SendBroadcast(aBuf, m_pPlayer->GetCID());
-	else
-		m_pGameServer->SendBroadcast(Localize(aBuf, GetLanguage()), m_pPlayer->GetCID());
+	m_pGameServer->SendBroadcast(Localize(aBuf, GetLanguage()), m_pPlayer->GetCID());
 }

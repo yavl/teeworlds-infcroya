@@ -10,6 +10,9 @@
 
 const char *Localize(const char *pStr, const char *pContext)
 {
+	if (str_comp_nocase(pContext, "english") == 0) {
+		return pStr;
+	}
 	const char *pNewStr = g_Localization.FindString(str_quickhash(pStr), str_quickhash(pContext));
 	return pNewStr ? pNewStr : pStr;
 }
