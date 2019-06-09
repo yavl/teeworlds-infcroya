@@ -175,6 +175,8 @@ void CGameControllerMOD::Tick()
 		for (CPlayer* each : GameServer()->m_apPlayers) {
 			if (!each)
 				continue;
+			if (!each->GetCroyaPlayer())
+				continue;
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), Localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()), Seconds);
 			GameServer()->SendChatTarget(each->GetCID(), aBuf);
@@ -296,6 +298,8 @@ void CGameControllerMOD::Tick()
 				for (CPlayer* each : GameServer()->m_apPlayers) {
 					if (!each)
 						continue;
+					if (!each->GetCroyaPlayer())
+						continue;
 
 					char aBuf[256];
 					str_format(aBuf, sizeof(aBuf), Localize("%d humans won the round", each->GetCroyaPlayer()->GetLanguage()), NumHumans);
@@ -312,6 +316,8 @@ void CGameControllerMOD::Tick()
 				int Seconds = g_Config.m_SvTimelimit * 60;
 				for (CPlayer* each : GameServer()->m_apPlayers) {
 					if (!each)
+						continue;
+					if (!each->GetCroyaPlayer())
 						continue;
 					char aBuf[256];
 					str_format(aBuf, sizeof(aBuf), Localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()), Seconds);
