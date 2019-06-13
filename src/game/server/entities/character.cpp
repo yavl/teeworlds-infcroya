@@ -1257,7 +1257,7 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 	{
 		if(m_Armor)
 		{
-			if(Dmg > 1 && !str_comp(g_Config.m_SvGametype, "mod") == 0) // INFCROYA RELATED
+			if(Dmg > 1 && str_comp(g_Config.m_SvGametype, "mod") != 0) // INFCROYA RELATED
 			{
 				m_Health--;
 				Dmg--;
