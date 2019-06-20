@@ -32,6 +32,8 @@ CroyaPlayer::CroyaPlayer(int ClientID, CPlayer* pPlayer, CGameContext* pGameServ
 	m_AirJumpCounter = 0;
 
 	m_InsideInfectionZone = false;
+	CTuningParams m_PrevTuningParams;
+	CTuningParams m_NextTuningParams;
 }
 
 CroyaPlayer::~CroyaPlayer()
@@ -113,6 +115,8 @@ void CroyaPlayer::Tick()
 	if (m_pCharacter && m_pClass && m_pCharacter->GameWorld()) { // so many null checks, not sure which are necessary
 		m_pClass->Tick(m_pCharacter);
 	}
+
+	HandleTuningParams();
 }
 
 CCircle* CroyaPlayer::GetClosestCircle()
@@ -487,4 +491,23 @@ void CroyaPlayer::SetClass(IClass* pClass, bool DrawPurpleThing)
 		m_pGameServer->SendBroadcast(aBuf, m_pPlayer->GetCID());
 	else
 		m_pGameServer->SendBroadcast(Localize(aBuf, GetLanguage()), m_pPlayer->GetCID());
+}
+
+void CroyaPlayer::HandleTuningParams()
+{
+	if(!(m_PrevTuningParams == m_NextTuningParams))
+	{
+		if(m_pPlayer->m_IsReadyToEnter)
+		{
+			CMsgPacker Msg(NETMSGTYPE_SV_TUNEPARAMS);
+			int *pParams = (int *)&m_NextTuningParams;
+			for(unsigned i = 0; i < sizeof(m_NextTuningParams)/sizeof(int); i++)
+				Msg.AddInt(pParams[i]);
+			m_pGameServer->Server()->SendMsg(&Msg, MSGFLAG_VITAL, GetClientID());
+		}
+
+		m_PrevTuningParams = m_NextTuningParams;
+	}
+
+	m_NextTuningParams = *m_pGameServer->Tuning();
 }

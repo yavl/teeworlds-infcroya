@@ -34,6 +34,16 @@ public:
 		#undef MACRO_TUNING_PARAM
 	}
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+	bool operator==(const CTuningParams& TuningParams)
+	{
+		#define MACRO_TUNING_PARAM(Name,ScriptName,Value) if(m_##Name != TuningParams.m_##Name) return false;
+		#include "tuning.h"
+		#undef MACRO_TUNING_PARAM
+		return true;
+	}
+	// INFCROYA END ------------------------------------------------------------//
+
 	static const char *m_apNames[];
 
 	#define MACRO_TUNING_PARAM(Name,ScriptName,Value) CTuneParam m_##Name;

@@ -95,4 +95,8 @@ public:
 
 	IClass* GetClass();
 	void SetClass(IClass* pClass, bool DrawPurpleThing = false);
+
+	void HandleTuningParams();
+	CTuningParams m_PrevTuningParams;
+	CTuningParams m_NextTuningParams;
 };

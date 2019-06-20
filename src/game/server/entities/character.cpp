@@ -80,6 +80,15 @@ CCharacter::CCharacter(CGameWorld *pWorld)
 	m_FrozenTime = -1;
 	m_PoisonTick = 0;
 	m_InAirTick = 0;
+	m_IsInSlowMotion = false;
+	m_InWater = 0;
+	m_SlowMotionTick = -1;
+	m_SlipperyTick = -1;
+	m_PositionLockTick = -Server()->TickSpeed()*10;
+	m_PositionLocked = false;
+	m_PositionLockAvailable = false;
+
+
 	// INFCROYA END ------------------------------------------------------------//
 }
 
@@ -96,6 +105,14 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_FrozenTime = -1;
 	m_Poison = 0;
 	SetHookProtected(true); // both humans and zombies hook protected by default
+	m_IsInSlowMotion = false;
+	m_InWater = 0;
+	m_SlowMotionTick = -1;
+	m_SlipperyTick = -1;
+	m_PositionLockTick = -Server()->TickSpeed()*10;
+	m_PositionLocked = false;
+	m_PositionLockAvailable = false;
+
 	// INFCROYA END ------------------------------------------------------------//
 	m_EmoteStop = -1;
 	m_LastAction = -1;
@@ -331,6 +348,11 @@ void CCharacter::FireWeapon()
 	if(m_ReloadTimer != 0)
 		return;
 
+	// INFCROYA BEGIN ------------------------------------------------------------
+	if(IsFrozen())
+		return;
+	// INFCROYA END ------------------------------------------------------------//
+
 	DoWeaponSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
@@ -551,6 +573,10 @@ void CCharacter::HandleWeapons()
 		return;
 	}
 
+	// not if frozen
+	if(IsFrozen())
+		return;
+
 	// fire Weapon, if wanted
 	FireWeapon();
 
@@ -665,6 +691,15 @@ bool CCharacter::IsHuman() const {
 
 bool CCharacter::IsZombie() const {
 	return m_Infected;
+}
+
+bool CCharacter::IsFrozen() const {
+		return m_IsFrozen > 0;
+}
+
+bool CCharacter::IsInSlowMotion() const
+{
+	return m_SlowMotionTick > 0;
 }
 
 void CCharacter::SetInfected(bool Infected) {
@@ -794,6 +829,104 @@ void CCharacter::Poison(int Count, int From)
 		m_PoisonFrom = From;
 	}
 }
+
+void CCharacter::UpdateTuningParam()
+{
+	CTuningParams* pTuningParams = &m_pPlayer->GetCroyaPlayer()->m_NextTuningParams;
+
+	bool NoActions = false;
+	//bool FixedPosition = false;
+
+	if(m_PositionLocked)
+	{
+		NoActions = true;
+		//FixedPosition = true;
+	}
+	if(m_IsFrozen)
+	{
+		NoActions = true;
+	}
+
+	if(m_SlowMotionTick > 0)
+	{
+//		float Factor = 1.0f - ((float)g_Config.m_InfSlowMotionPercent / 100);
+//		float FactorSpeed = 1.0f - ((float)g_Config.m_InfSlowMotionHookSpeed / 100);
+//		float FactorAccel = 1.0f - ((float)g_Config.m_InfSlowMotionHookAccel / 100);
+//		pTuningParams->m_GroundControlSpeed = pTuningParams->m_GroundControlSpeed * Factor;
+//		pTuningParams->m_HookFireSpeed = pTuningParams->m_HookFireSpeed * FactorSpeed;
+//		//pTuningParams->m_GroundJumpImpulse = pTuningParams->m_GroundJumpImpulse * Factor;
+//		//pTuningParams->m_AirJumpImpulse = pTuningParams->m_AirJumpImpulse * Factor;
+//		pTuningParams->m_AirControlSpeed = pTuningParams->m_AirControlSpeed * Factor;
+//		pTuningParams->m_HookDragAccel = pTuningParams->m_HookDragAccel * FactorAccel;
+//		pTuningParams->m_HookDragSpeed = pTuningParams->m_HookDragSpeed * FactorSpeed;
+//		pTuningParams->m_Gravity = g_Config.m_InfSlowMotionGravity * 0.01f;
+//
+//		if (g_Config.m_InfSlowMotionMaxSpeed > 0)
+//		{
+//			float MaxSpeed = g_Config.m_InfSlowMotionMaxSpeed * 0.1f;
+//			float diff = MaxSpeed / length(m_Core.m_Vel);
+//			if (diff < 1.0f) m_Core.m_Vel *= diff;
+//		}
+	}
+
+	if(m_HookMode == 1)
+	{
+		pTuningParams->m_HookDragSpeed = 0.0f;
+		pTuningParams->m_HookDragAccel = 1.0f;
+	}
+	if(m_InWater == 1)
+	{
+		pTuningParams->m_Gravity = -0.05f;
+		pTuningParams->m_GroundFriction = 0.95f;
+		pTuningParams->m_GroundControlSpeed = 250.0f / Server()->TickSpeed();
+		pTuningParams->m_GroundControlAccel = 1.5f;
+		pTuningParams->m_GroundJumpImpulse = 0.0f;
+		pTuningParams->m_AirFriction = 0.95f;
+		pTuningParams->m_AirControlSpeed = 250.0f / Server()->TickSpeed();
+		pTuningParams->m_AirControlAccel = 1.5f;
+		pTuningParams->m_AirJumpImpulse = 0.0f;
+	}
+	if(m_SlipperyTick > 0)
+	{
+		pTuningParams->m_GroundFriction = 1.0f;
+	}
+
+	if(NoActions)
+	{
+		pTuningParams->m_GroundControlAccel = 0.0f;
+		pTuningParams->m_GroundJumpImpulse = 0.0f;
+		pTuningParams->m_AirJumpImpulse = 0.0f;
+		pTuningParams->m_AirControlAccel = 0.0f;
+		pTuningParams->m_HookLength = 0.0f;
+	}
+
+//	if(FixedPosition || m_Core.m_IsPassenger)
+//	{
+//		pTuningParams->m_Gravity = 0.0f;
+//	}
+
+	pTuningParams->m_PlayerHooking = 0;
+	if(m_Core.m_HookedPlayer > -1)
+	{
+		pTuningParams->m_PlayerHooking = 1;
+	}
+
+//	if(GetClass() == PLAYERCLASS_GHOUL)
+//	{
+//		float Factor = m_pPlayer->GetGhoulPercent();
+//		pTuningParams->m_GroundControlSpeed = pTuningParams->m_GroundControlSpeed * (1.0f + 0.5f*Factor);
+//		pTuningParams->m_GroundControlAccel = pTuningParams->m_GroundControlAccel * (1.0f + 0.5f*Factor);
+//		pTuningParams->m_GroundJumpImpulse = pTuningParams->m_GroundJumpImpulse * (1.0f + 0.35f*Factor);
+//		pTuningParams->m_AirJumpImpulse = pTuningParams->m_AirJumpImpulse * (1.0f + 0.35f*Factor);
+//		pTuningParams->m_AirControlSpeed = pTuningParams->m_AirControlSpeed * (1.0f + 0.5f*Factor);
+//		pTuningParams->m_AirControlAccel = pTuningParams->m_AirControlAccel * (1.0f + 0.5f*Factor);
+//		pTuningParams->m_HookDragAccel = pTuningParams->m_HookDragAccel * (1.0f + 0.5f*Factor);
+//		pTuningParams->m_HookDragSpeed = pTuningParams->m_HookDragSpeed * (1.0f + 0.5f*Factor);
+//	}
+
+
+}
+
 
 void CCharacter::DestroyChildEntities()
 {
@@ -1047,6 +1180,10 @@ void CCharacter::Tick()
 	HandleWeapons();
 
 	// INFCROYA BEGIN ------------------------------------------------------------
+	CTuningParams* pTuningParams = &m_pPlayer->GetCroyaPlayer()->m_NextTuningParams;
+	bool NoActions = false;
+	//bool FixedPosition = false;
+
 	if (m_Poison > 0)
 	{
 		if (m_PoisonTick == 0)
@@ -1063,6 +1200,38 @@ void CCharacter::Tick()
 			m_PoisonTick--;
 		}
 	}
+
+	if(m_IsFrozen)
+	{
+		if(m_FrozenTime <= 0)
+		{
+			Unfreeze();
+		}
+		else
+		{
+			--m_FrozenTime;
+			m_Input.m_Jump = 0;
+			m_Input.m_Direction = 0;
+			m_Input.m_Hook = 0;
+			//int FreezeSec = 1+(m_FrozenTime/Server()->TickSpeed());
+			//TODO broadcast you are freezed
+			//GameServer()->SendBroadcast_Localization(m_pPlayer->GetCID(), BROADCAST_PRIORITY_EFFECTSTATE, BROADCAST_DURATION_REALTIME, _("You are frozen: {sec:EffectDuration}"), "EffectDuration", &FreezeSec, NULL);
+		}
+	}
+
+
+	if(NoActions)
+	{
+		pTuningParams->m_GroundControlAccel = 0.0f;
+		pTuningParams->m_GroundJumpImpulse = 0.0f;
+		pTuningParams->m_AirJumpImpulse = 0.0f;
+		pTuningParams->m_AirControlAccel = 0.0f;
+		pTuningParams->m_HookLength = 0.0f;
+	}
+
+	UpdateTuningParam();
+
+	m_Core.m_Input = m_Input;
 	// INFCROYA END ------------------------------------------------------------//
 }
 
@@ -1180,21 +1349,21 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int Weapon)
 {
-	// we got to wait 0.5 secs before respawning
-	m_Alive = false;
-	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 	// INFCROYA BEGIN ------------------------------------------------------------
 	int ModeSpecial;
-	if (str_comp_nocase(g_Config.m_SvGametype, "mod") == 0) {
+	if (str_comp_nocase(g_Config.m_SvGametype, "InfCroya") == 0) {
 		ModeSpecial = 0;
 	}
 	else {
 		ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
-		
 		if (ModeSpecial == DEATH_TYPE_UNDEAD) return;
-		
+
 	}
 	// INFCROYA END ------------------------------------------------------------//
+
+	// we got to wait 0.5 secs before respawning
+	m_Alive = false;
+	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
@@ -1340,6 +1509,12 @@ void CCharacter::Snap(int SnappingClient)
 	CNetObj_Character *pCharacter = static_cast<CNetObj_Character *>(Server()->SnapNewItem(NETOBJTYPE_CHARACTER, m_pPlayer->GetCID(), sizeof(CNetObj_Character)));
 	if(!pCharacter)
 		return;
+
+	// INFCROYA BEGIN ------------------------------------------------------------
+		SetNormalEmote(EMOTE_NORMAL);
+		if(IsZombie()) SetNormalEmote(EMOTE_ANGRY);
+		if(IsFrozen()) SetNormalEmote(EMOTE_PAIN);
+	// INFCROYA END ------------------------------------------------------------//
 
 	// write down the m_Core
 	if(!m_ReckoningTick || GameServer()->m_World.m_Paused)

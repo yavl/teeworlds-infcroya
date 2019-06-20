@@ -78,6 +78,8 @@ public:
 
 	bool IsHuman() const;
 	bool IsZombie() const;
+	bool IsFrozen() const;
+	bool IsInSlowMotion() const;
 
 	void SetInfected(bool Infected);
 
@@ -105,6 +107,7 @@ public:
 	void Freeze(float Time, int Player, int Reason);
 	void Unfreeze();
 	void Poison(int Count, int From);
+	void UpdateTuningParam();
 
 	void DestroyChildEntities();
 
@@ -137,6 +140,7 @@ private:
 	int m_HeartID;
 	int m_NormalEmote;
 	bool m_IsFrozen;
+	bool m_IsInSlowMotion;
 	int m_FrozenTime;
 	int m_FreezeReason;
 	int m_LastFreezer;
@@ -145,6 +149,13 @@ private:
 	int m_PoisonTick;
 	int m_PoisonFrom;
 	bool m_HookProtected;
+	bool m_PositionLocked;
+	int m_PositionLockTick;
+	int m_PositionLockAvailable;
+	int m_SlowMotionTick;
+	int m_SlipperyTick;
+	int m_HookMode;
+	bool m_InWater;
 	// INFCROYA END ------------------------------------------------------------//
 
 	// weapon info
