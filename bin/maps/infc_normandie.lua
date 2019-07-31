@@ -4,7 +4,7 @@ default_radius = 10000
 min_radius = 800
 circle_shrink_speed = 1
 default_inf_radius = 360
-timelimit = 4
+timelimit = 3
 
 circle_positions = {}
 
@@ -20,7 +20,7 @@ function infc_init()
 	-- infc_init() is called 10 secs after round start
 	-- hardcode passed C/C++ values here (e.g for tests)
 	-- passed values: infc_num_players
-	if infc_num_players < 10 then
+	if infc_num_players < 32 then
 		case = math.random(1, 4) -- four different cases
 		if case == 1 then
 			circle_positions = { 

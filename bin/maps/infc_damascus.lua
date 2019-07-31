@@ -1,10 +1,10 @@
 -- shrinking from 10000 to 800 (with shrink speed = 1) takes 184 seconds
 -- why: 10000 - 800 = 9200; 9200 / TickSpeed = 184; where TickSpeed = 50
-default_radius = 10000
+default_radius = 6500
 min_radius = 800
 circle_shrink_speed = 1
 default_inf_radius = 250
-timelimit = 5
+timelimit = 3
 
 circle_positions = {}
 
@@ -21,8 +21,7 @@ function infc_init()
 	-- infc_init() is called 10 secs after round start
 	-- hardcode passed C/C++ values here (e.g for tests)
 	-- passed values: infc_num_players
-	if infc_num_players < 10 then
-		timelimit = 4
+	if infc_num_players < 32 then
 		case = math.random(1, 3) -- three different cases
 		if case == 1 then
 			circle_positions = { 
@@ -45,7 +44,7 @@ function infc_init()
 			}
 		end
 	else
-		timelimit = 5
+		timelimit = 4
 	end
 end
 

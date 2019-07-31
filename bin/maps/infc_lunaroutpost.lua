@@ -4,7 +4,7 @@ default_radius = 6500
 min_radius = 800
 circle_shrink_speed = 1
 default_inf_radius = 360
-timelimit = 4
+timelimit = 3
 
 circle_positions = {}
 
