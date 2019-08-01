@@ -23,19 +23,19 @@ function infc_init()
 	case = math.random(1, 3)
 	if case == 1 then
 		circle_positions = {
-			60, 9, default_radius, circle_shrink_speed,
+			60, 9, default_radius, min_radius, circle_shrink_speed,
 		}
 	end
 	
 	if case == 2 then
 		circle_positions = {
-			106, 17, default_radius, circle_shrink_speed,
+			106, 17, default_radius, min_radius, circle_shrink_speed,
 		}
 	end
 
 	if case == 3 then
 		circle_positions = {
-			149, 17, default_radius, circle_shrink_speed,
+			149, 17, default_radius, min_radius, circle_shrink_speed,
 		}
 	end
 end
