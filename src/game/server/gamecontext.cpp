@@ -22,6 +22,7 @@
 #include "player.h"
 // INFCROYA BEGIN ------------------------------------------------------------
 #include <infcroya/localization/localization.h>
+#include <infcroya/croyaplayer.h>
 #include <sstream>
 #include <vector>
 // INFCROYA END ------------------------------------------------------------//

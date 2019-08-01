@@ -6,10 +6,10 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
-#include <infcroya/croyaplayer.h>
 
 // you can subclass GAMECONTROLLER_CTF, GAMECONTROLLER_TDM etc if you want
 // todo a modification with their base as well.
+
 class CGameControllerMOD : public IGameController
 {
 private:

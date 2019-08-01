@@ -7,7 +7,6 @@
 #include <infcroya/entities/scientist-mine.h>
 #include <infcroya/entities/scientist-laser.h>
 #include <infcroya/entities/laser-teleport.h>
-#include <engine/shared/config.h>
 
 CScientist::CScientist()
 {

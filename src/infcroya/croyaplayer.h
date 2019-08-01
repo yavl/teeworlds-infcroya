@@ -3,16 +3,20 @@
 #include <base/vmath.h>
 #include <unordered_map>
 #include <string>
-#include <generated/protocol.h>
-#include <game/gamecore.h>
+
+class IClass;
+class CPlayer;
+class CCharacter;
+class CGameContext;
+class CGameControllerMOD;
 
 class CroyaPlayer {
 private:
-	class IClass* m_pClass;
-	class CPlayer* m_pPlayer;
-	class CCharacter* m_pCharacter;
-	class CGameContext* m_pGameServer;
-	class CGameControllerMOD* m_pGameController;
+	IClass* m_pClass;
+	CPlayer* m_pPlayer;
+	CCharacter* m_pCharacter;
+	CGameContext* m_pGameServer;
+	CGameControllerMOD* m_pGameController;
 	int m_ClientID;
 	bool m_Infected;
 	bool m_HookProtected;

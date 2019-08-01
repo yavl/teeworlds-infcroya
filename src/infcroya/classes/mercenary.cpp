@@ -1,13 +1,8 @@
 #include "mercenary.h"
-#include "base/system.h"
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
 #include <game/server/gamecontext.h>
-#include <generated/server_data.h>
 #include <game/server/entities/projectile.h>
-#include <base/math.h>
-#include <engine/message.h>
-#include <infcroya/croyaplayer.h>
 #include <infcroya/entities/merc-bomb.h>
 #include <infcroya/entities/scatter-grenade.h>
 

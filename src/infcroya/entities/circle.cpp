@@ -1,13 +1,8 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <game/server/gamecontext.h>
-#include <engine/shared/config.h>
-
 #include "circle.h"
-
 #include "growingexplosion.h"
-#include <game/server/entities/character.h>
-#include <game/server/player.h>
 
 CCircle::CCircle(CGameWorld* pGameWorld, vec2 Pos, int Owner, float Radius, float MinRadius, float ShrinkSpeed)
 	: CEntity(pGameWorld, CGameWorld::ENTTYPE_SCIENTIST_MINE, Pos)

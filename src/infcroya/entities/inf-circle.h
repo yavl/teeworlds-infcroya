@@ -1,7 +1,6 @@
 #pragma once
 
 #include <game/server/entity.h>
-#include <base/tl/array.h>
 
 class CInfCircle : public CEntity
 {

@@ -1,5 +1,3 @@
-#include <base/math.h>
-#include <base/vmath.h>
 #include <game/server/gamecontext.h>
 #include <infcroya/entities/growingexplosion.h>
 

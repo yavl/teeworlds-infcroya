@@ -1,12 +1,9 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#include <base/math.h>
-#include <base/vmath.h>
 #include <game/server/gamecontext.h>
 
 #include "bouncing-bullet.h"
 #include <game/server/entities/character.h>
-#include <game/server/player.h>
 
 CBouncingBullet::CBouncingBullet(CGameWorld *pGameWorld, int Owner, vec2 Pos, vec2 Dir)
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_BOUNCING_BULLET, Pos)

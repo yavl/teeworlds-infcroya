@@ -4,7 +4,6 @@
 #define GAME_SERVER_ENTITIES_SOLDIER_BOMB_H
 
 #include <game/server/entity.h>
-#include <base/tl/array.h>
 
 class CSoldierBomb : public CEntity
 {

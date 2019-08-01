@@ -1,5 +1,4 @@
 #include "default.h"
-#include "base/system.h"
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
 #include <game/server/entities/projectile.h>

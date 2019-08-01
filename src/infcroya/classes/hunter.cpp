@@ -1,8 +1,8 @@
 #include "hunter.h"
-#include "base/system.h"
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
 #include <game/server/gamecontext.h>
+#include <infcroya/croyaplayer.h>
 
 CHunter::CHunter() : IClass()
 {
