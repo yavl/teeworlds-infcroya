@@ -24,6 +24,7 @@
 #include <infcroya/localization/localization.h>
 #include <sstream>
 #include <vector>
+#include <infcroya/game/croya-gamecontext.h>
 // INFCROYA END ------------------------------------------------------------//
 
 enum
@@ -1695,7 +1696,11 @@ const char *CGameContext::NetVersion() const { return GAME_NETVERSION; }
 const char *CGameContext::NetVersionHashUsed() const { return GAME_NETVERSION_HASH_FORCED; }
 const char *CGameContext::NetVersionHashReal() const { return GAME_NETVERSION_HASH; }
 
-IGameServer *CreateGameServer() { return new CGameContext; }
+IGameServer *CreateGameServer()
+{ 
+	return new CCroyaGameContext; // INFCROYA RELATED
+	//return new CGameContext;
+}
 
 // INFCROYA BEGIN ------------------------------------------------------------
 // CGameContext::SendCommand() copied from github.com/AssassinTee/catch64

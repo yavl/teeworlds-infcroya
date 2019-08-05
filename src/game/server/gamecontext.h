@@ -36,6 +36,7 @@
 */
 class CGameContext : public IGameServer
 {
+protected: // INFCROYA RELATED, contains virtual methods
 	IServer *m_pServer;
 	class IConsole *m_pConsole;
 	CLayers m_Layers;
@@ -87,7 +88,7 @@ public:
 	CTuningParams *Tuning() { return &m_Tuning; }
 
 	CGameContext();
-	~CGameContext();
+	virtual ~CGameContext();  // INFCROYA RELATED, contains virtual methods
 
 	void Clear();
 

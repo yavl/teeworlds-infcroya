@@ -386,6 +386,7 @@ function BuildServer(settings, family, platform)
 	
 	local infcroya = Compile(settings, Collect("src/infcroya/*.cpp", "src/infcroya/classes/*.cpp")) -- INFCROYA RELATED
 	local infcroya_entities = Compile(settings, Collect("src/infcroya/entities/*.cpp")) -- INFCROYA RELATED
+	local infcroya_game = Compile(settings, Collect("src/infcroya/game/*.cpp")) -- INFCROYA RELATED
 	local infcroya_player = Compile(settings, Collect("src/infcroya/player/*.cpp")) -- INFCROYA RELATED
 	local localization = Compile(settings, Collect("src/infcroya/localization/*.cpp", "src/infcroya/localization/json-parses/*.c")) -- INFCROYA RELATED
 	local lualoader = Compile(settings, Collect("src/infcroya/lualoader/*.cpp")) -- INFCROYA RELATED
@@ -393,7 +394,7 @@ function BuildServer(settings, family, platform)
 		geolocation = Compile(settings, Collect("src/infcroya/geolocation/*.cpp", "src/infcroya/geolocation/GeoLite2PP/*.cpp")) -- INFCROYA RELATED
 	end
 	
-	return Link(settings, "server", libs["zlib"], libs["md5"], server, game_server, infcroya, infcroya_entities,infcroya_player, localization, lualoader, geolocation) -- INFCROYA RELATED
+	return Link(settings, "server", libs["zlib"], libs["md5"], server, game_server, infcroya, infcroya_entities,infcroya_game,infcroya_player, localization, lualoader, geolocation) -- INFCROYA RELATED
 end
 
 function BuildTools(settings)
