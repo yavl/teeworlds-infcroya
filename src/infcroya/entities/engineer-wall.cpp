@@ -7,7 +7,7 @@
 #include "engineer-wall.h"
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 
 const float g_BarrierMaxLength = 300.0;
 const float g_BarrierRadius = 0.0;

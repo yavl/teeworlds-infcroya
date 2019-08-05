@@ -1,6 +1,6 @@
 #pragma once
 
-#include <infcroya/skin.h>
+#include <infcroya/player/skin.h>
 #include <base/vmath.h>
 #include <unordered_map>
 #include <string>

@@ -6,7 +6,6 @@
 #include <game/server/entities/character.h>
 #include <vector>
 #include <algorithm>
-#include <infcroya/croyaplayer.h>
 #include <infcroya/classes/default.h>
 #include <infcroya/classes/biologist.h>
 #include <infcroya/classes/smoker.h>

@@ -4,7 +4,7 @@
 #include <game/server/entities/projectile.h>
 #include <game/server/gamecontext.h>
 #include <generated/server_data.h>
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 #include <infcroya/entities/medic-laser.h>
 #include <infcroya/entities/medic-grenade.h>
 

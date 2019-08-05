@@ -10,7 +10,7 @@
 #include "gamecontroller.h"
 #include "player.h"
 // INFCROYA BEGIN ------------------------------------------------------------
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 #include <infcroya/classes/class.h>
 #include <game/server/gamemodes/mod.h>
 // INFCROYA END ------------------------------------------------------------//

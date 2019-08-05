@@ -7,7 +7,7 @@
 #include <game/server/entities/projectile.h>
 #include <base/math.h>
 #include <engine/message.h>
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 #include <infcroya/entities/merc-bomb.h>
 #include <infcroya/entities/scatter-grenade.h>
 

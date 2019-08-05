@@ -12,7 +12,7 @@
 #include "projectile.h"
 
 // INFCROYA BEGIN ------------------------------------------------------------
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 #include <infcroya/classes/class.h>
 #include <game/server/eventhandler.h>
 #include <infcroya/entities/engineer-wall.h>

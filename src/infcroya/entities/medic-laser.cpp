@@ -6,7 +6,7 @@
 #include "game/server/entities/character.h"
 #include "game/server/player.h"
 #include "medic-laser.h"
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 #include <infcroya/classes/class.h>
 
 CMedicLaser::CMedicLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner)

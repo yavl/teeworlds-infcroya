@@ -9,7 +9,7 @@
 #include <base/math.h>
 #include <infcroya/entities/bouncing-bullet.h>
 #include <engine/message.h>
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 
 CBiologist::CBiologist()
 {

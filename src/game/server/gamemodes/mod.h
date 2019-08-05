@@ -6,7 +6,7 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
-#include <infcroya/croyaplayer.h>
+#include <infcroya/player/croyaplayer.h>
 #include <infcroya/entities/weapon-types.h>
 
 // you can subclass GAMECONTROLLER_CTF, GAMECONTROLLER_TDM etc if you want
