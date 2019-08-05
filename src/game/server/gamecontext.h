@@ -36,7 +36,19 @@
 */
 class CGameContext : public IGameServer
 {
-protected: // INFCROYA RELATED, contains virtual methods
+// INFCROYA BEGIN ------------------------------------------------------------
+
+public:
+	// define virtual methods for CroyaGameContext
+	virtual void CreateExplosionDisk(vec2 Pos, float InnerRadius, float DamageRadius, int Damage, float Force, int Owner, int Weapon) {};
+	virtual void CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan) {};
+	virtual void SendChatTarget(int To, const char* pText) {};
+	virtual int GetHumanCount() const {return 0;};
+	virtual int GetZombieCount() const {return 0;};
+	virtual void SendCommand(int ChatterClientID, const std::string& command) {}; // copied from github.com/AssassinTee/catch64
+
+protected: // acts as base for infcroya-gamecontext
+// INFCROYA END ------------------------------------------------------------//
 	IServer *m_pServer;
 	class IConsole *m_pConsole;
 	CLayers m_Layers;
@@ -71,16 +83,6 @@ protected: // INFCROYA RELATED, contains virtual methods
 
 	bool m_Resetting;
 
-	// INFCROYA BEGIN ------------------------------------------------------------
-	struct LaserDotState
-	{
-		vec2 m_Pos0;
-		vec2 m_Pos1;
-		int m_LifeSpan;
-		int m_SnapID;
-	};
-	array<LaserDotState> m_LaserDots;
-	// INFCROYA END ------------------------------------------------------------//
 public:
 	IServer *Server() const { return m_pServer; }
 	class IConsole *Console() { return m_pConsole; }
@@ -141,8 +143,7 @@ public:
 
 	// helper functions
 	void CreateDamage(vec2 Pos, int Id, vec2 Source, int HealthAmount, int ArmorAmount, bool Self);
-	void CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamage, bool MercBomb = false); // INFCROYA RELATED, (bool MercBomb)
-	void CreateExplosionDisk(vec2 Pos, float InnerRadius, float DamageRadius, int Damage, float Force, int Owner, int Weapon); // INFCROYA RELATED
+	virtual void CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamage, bool MercBomb = false); // INFCROYA OVERRIDE, (bool MercBomb)
 	void CreateHammerHit(vec2 Pos);
 	void CreatePlayerSpawn(vec2 Pos);
 	void CreateDeath(vec2 Pos, int Who);
@@ -198,14 +199,6 @@ public:
 
 	virtual const char *NetVersionHashUsed() const;
 	virtual const char *NetVersionHashReal() const;
-	// INFCROYA BEGIN ------------------------------------------------------------
-	// CGameContext::SendCommand() copied from github.com/AssassinTee/catch64
-	void SendCommand(int ChatterClientID, const std::string& command);
-	void CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan);
-	void SendChatTarget(int To, const char* pText);
-	int GetHumanCount() const;
-	int GetZombieCount() const;
-	// INFCROYA END ------------------------------------------------------------//
 };
 
 inline int64 CmaskAll() { return -1; }

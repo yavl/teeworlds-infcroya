@@ -20,12 +20,8 @@
 #include "gamemodes/tdm.h"
 #include "gamecontext.h"
 #include "player.h"
-// INFCROYA BEGIN ------------------------------------------------------------
-#include <infcroya/localization/localization.h>
-#include <sstream>
-#include <vector>
-#include <infcroya/game/croya-gamecontext.h>
-// INFCROYA END ------------------------------------------------------------//
+
+#include <infcroya/game/infcroya-gamecontext.h> // INFCROYA RELATED
 
 enum
 {
@@ -145,11 +141,6 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamag
 	int Num = m_World.FindEntities(Pos, Radius, (CEntity**)apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 	for(int i = 0; i < Num; i++)
 	{
-		// INFCROYA BEGIN ------------------------------------------------------------
-		if (MercBomb && m_apPlayers[Owner]->GetCroyaPlayer()->IsZombie()) {
-			break;
-		}
-		// INFCROYA END ------------------------------------------------------------//
 		vec2 Diff = apEnts[i]->GetPos() - Pos;
 		vec2 Force(0, MaxForce);
 		float l = length(Diff);
@@ -160,57 +151,6 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, int MaxDamag
 			apEnts[i]->TakeDamage(Force * Factor, Diff*-1, (int)(Factor * MaxDamage), Owner, Weapon);
 	}
 }
-
-// INFCROYA BEGIN ------------------------------------------------------------
-// Thanks to Stitch for the idea
-void CGameContext::CreateExplosionDisk(vec2 Pos, float InnerRadius, float DamageRadius, int Damage, float Force, int Owner, int Weapon)
-{
-	// create the event
-	CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)m_Events.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion));
-	if(pEvent)
-	{
-		pEvent->m_X = (int)Pos.x;
-		pEvent->m_Y = (int)Pos.y;
-	}
-	if(Damage > 0)
-	{
-		// deal damage
-		CCharacter *apEnts[MAX_CLIENTS];
-		int Num = m_World.FindEntities(Pos, DamageRadius, (CEntity**)apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
-		for(int i = 0; i < Num; i++)
-		{
-			vec2 Diff = apEnts[i]->GetPos() - Pos;
-			if (Diff.x == 0.0f && Diff.y == 0.0f)
-				Diff.y = -0.5f;
-			vec2 ForceDir(0,1);
-			float len = length(Diff);
-			len = 1-clamp((len-InnerRadius)/(DamageRadius-InnerRadius), 0.0f, 1.0f);
-			
-			if(len)
-				ForceDir = normalize(Diff);
-			
-			float DamageToDeal = 1 + ((Damage - 1) * len);
-			if (apEnts[i]->IsZombie())
-				apEnts[i]->IncreaseOverallHp(DamageToDeal);
-			apEnts[i]->TakeDamage(ForceDir * Force * len, Diff * -1, DamageToDeal, Owner, Weapon);
-		}
-	}
-	
-	float CircleLength = 2.0*pi*max(DamageRadius-135.0f, 0.0f);
-	int NumSuroundingExplosions = CircleLength/32.0f;
-	float AngleStart = frandom()*pi*2.0f;
-	float AngleStep = pi*2.0f/static_cast<float>(NumSuroundingExplosions);
-	for(int i=0; i<NumSuroundingExplosions; i++)
-	{
-		CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)m_Events.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion));
-		if(pEvent)
-		{
-			pEvent->m_X = (int)Pos.x + (DamageRadius-135.0f) * cos(AngleStart + i*AngleStep);
-			pEvent->m_Y = (int)Pos.y + (DamageRadius-135.0f) * sin(AngleStart + i*AngleStep);
-		}
-	}
-}
-// INFCROYA END ------------------------------------------------------------//
 
 void CGameContext::CreatePlayerSpawn(vec2 Pos)
 {
@@ -562,24 +502,6 @@ void CGameContext::OnTick()
 			m_apPlayers[i]->PostTick();
 		}
 	}
-
-	// INFCROYA BEGIN ------------------------------------------------------------
-	// Clean old dots
-	int DotIter;
-
-	DotIter = 0;
-	while (DotIter < m_LaserDots.size())
-	{
-		m_LaserDots[DotIter].m_LifeSpan--;
-		if (m_LaserDots[DotIter].m_LifeSpan <= 0)
-		{
-			Server()->SnapFreeID(m_LaserDots[DotIter].m_SnapID);
-			m_LaserDots.remove_index(DotIter);
-		}
-		else
-			DotIter++;
-	}
-	// INFCROYA END ------------------------------------------------------------//
 
 	// update voting
 	if(m_VoteCloseTime)
@@ -1701,94 +1623,3 @@ IGameServer *CreateGameServer()
 	return new CCroyaGameContext; // INFCROYA RELATED
 	//return new CGameContext;
 }
-
-// INFCROYA BEGIN ------------------------------------------------------------
-// CGameContext::SendCommand() copied from github.com/AssassinTee/catch64
-void CGameContext::SendCommand(int ChatterClientID, const std::string& command)
-{
-	std::vector<std::string> messageList;
-	if (command == "cmdlist")
-	{
-		messageList.push_back("-- Commands --");
-		messageList.push_back("'/cmdlist'- show commands");
-		messageList.push_back("'/help' - show help");
-		messageList.push_back("'/info' - show mod information");
-	}
-	else if (command == "help")
-	{
-		messageList.push_back("-- Help --");
-		messageList.push_back("Infection mod");
-		messageList.push_back("Run away from zombies (greens) as a human");
-		messageList.push_back("Infect humans as a zombie");
-		messageList.push_back("More fun to play with friends ;)");
-	}
-	else if (command == "info")
-	{
-		messageList.push_back("-- Info --");
-		messageList.push_back("InfCroya");
-		messageList.push_back("InfClass with battle royale circles");
-		messageList.push_back("Thanks to: All InfClass & InfClassR contributors and Assa for chat commands");
-		messageList.push_back("Sources: https://github.com/yavl/teeworlds-infcroya");
-		std::stringstream ss;
-		ss << "Teeworlds version: '" << GAME_RELEASE_VERSION << "', Compiled: '" << __DATE__ << "'";
-		messageList.push_back(ss.str());
-	}
-	CNetMsg_Sv_Chat Msg;
-	Msg.m_Mode = CHAT_ALL;
-	Msg.m_ClientID = -1;
-
-	Msg.m_TargetID = ChatterClientID;
-	for (auto it = messageList.begin(); it != messageList.end(); ++it)
-	{
-		Msg.m_pMessage = it->c_str();
-		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ChatterClientID);
-	}
-}
-
-void CGameContext::CreateLaserDotEvent(vec2 Pos0, vec2 Pos1, int LifeSpan)
-{
-	CGameContext::LaserDotState State;
-	State.m_Pos0 = Pos0;
-	State.m_Pos1 = Pos1;
-	State.m_LifeSpan = LifeSpan;
-	State.m_SnapID = Server()->SnapNewID();
-
-	m_LaserDots.add(State);
-}
-
-void CGameContext::SendChatTarget(int To, const char* pText)
-{
-	CNetMsg_Sv_Chat Msg;
-	Msg.m_Mode = MSGFLAG_VITAL;
-	Msg.m_ClientID = -1;
-	Msg.m_TargetID = To;
-	Msg.m_pMessage = pText;
-	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, To);
-}
-
-int CGameContext::GetHumanCount() const
-{
-	int HumanCount = 0;
-	for (CPlayer* each : m_apPlayers) {
-		if (each) {
-			CCharacter* pChr = each->GetCharacter();
-			if (pChr && pChr->IsHuman())
-				HumanCount++;
-		}
-	}
-	return HumanCount;
-}
-
-int CGameContext::GetZombieCount() const
-{
-	int ZombiesCount = 0;
-	for (CPlayer* each : m_apPlayers) {
-		if (each) {
-			CCharacter* pChr = each->GetCharacter();
-			if (pChr && pChr->IsZombie())
-				ZombiesCount++;
-		}
-	}
-	return ZombiesCount;
-}
-// INFCROYA END ------------------------------------------------------------//
