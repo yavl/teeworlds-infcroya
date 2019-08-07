@@ -37,11 +37,11 @@ CroyaPlayer::~CroyaPlayer()
 {
 }
 
-void CroyaPlayer::Tick()
+void CroyaPlayer::Tick() // todo cleanup
 {
 	SetInsideInfectionZone(false);
 
-	if (IsHuman() && m_pCharacter) {
+	if (IsHuman() && m_pCharacter && m_pCharacter->GameWorld()) {
 		// Infect when inside infection zone circle
 		auto circle = GetClosestInfCircle();
 		if (circle) {
@@ -83,7 +83,7 @@ void CroyaPlayer::Tick()
 		}
 	}
 
-	if (IsZombie() && m_pCharacter) {
+	if (IsZombie() && m_pCharacter && m_pCharacter->GameWorld()) {
 		if (m_pCharacter->GetCharacterCore().m_HookedPlayer >= 0) {
 			CCharacter* VictimChar = m_pGameServer->GetPlayerChar(m_pCharacter->GetCharacterCore().m_HookedPlayer);
 			if (VictimChar)
