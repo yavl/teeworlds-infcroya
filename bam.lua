@@ -258,6 +258,16 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 		-- disable visibility attribute support for gcc on windows
 		settings.cc.defines:Add("NO_VIZ")
 		settings.cc.defines:Add("_WIN32_WINNT=0x0501")
+		
+		-- INFCROYA BEGIN
+		settings.cc.includes:Add("other/infcroya/lua/include")
+		if target_arch == "x86" then
+			settings.link.libpath:Add("other/infcroya/lua/gcc/lib32")
+		elseif target_arch == "x86_64" then
+			settings.link.libpath:Add("other/infcroya/lua/gcc/lib64")
+		end
+		settings.link.libs:Add("lua53")
+		-- INFCROYA END //
 	end
 
 	local icons = SharedIcons(compiler)
