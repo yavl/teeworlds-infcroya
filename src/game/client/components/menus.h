@@ -8,7 +8,8 @@
 
 #include <engine/graphics.h>
 #include <engine/demo.h>
-#include <engine/friends.h>
+#include <engine/contacts.h>
+#include <engine/serverbrowser.h>
 
 #include <game/voting.h>
 #include <game/client/component.h>
@@ -29,6 +30,56 @@ public:
 	CMenusKeyBinder();
 	virtual bool OnInput(IInput::CEvent Event);
 };
+
+class IScrollbarScale
+{
+public:
+	virtual float ToRelative(int AbsoluteValue, int Min, int Max) = 0;
+	virtual int ToAbsolute(float RelativeValue, int Min, int Max) = 0;
+};
+static class CLinearScrollbarScale : public IScrollbarScale
+{
+public:
+	float ToRelative(int AbsoluteValue, int Min, int Max)
+	{
+		return (AbsoluteValue - Min) / (float)(Max - Min);
+	}
+	int ToAbsolute(float RelativeValue, int Min, int Max)
+	{
+		return round_to_int(RelativeValue*(Max - Min) + Min + 0.1f);
+	}
+} LinearScrollbarScale;
+static class CLogarithmicScrollbarScale : public IScrollbarScale
+{
+private:
+	int m_MinAdjustment;
+public:
+	CLogarithmicScrollbarScale(int MinAdjustment)
+	{
+		m_MinAdjustment = max(MinAdjustment, 1); // must be at least 1 to support Min == 0 with logarithm
+	}
+	float ToRelative(int AbsoluteValue, int Min, int Max)
+	{
+		if(Min < m_MinAdjustment)
+		{
+			AbsoluteValue += m_MinAdjustment;
+			Min += m_MinAdjustment;
+			Max += m_MinAdjustment;
+		}
+		return (log(AbsoluteValue) - log(Min)) / (float)(log(Max) - log(Min));
+	}
+	int ToAbsolute(float RelativeValue, int Min, int Max)
+	{
+		int ResultAdjustment = 0;
+		if(Min < m_MinAdjustment)
+		{
+			Min += m_MinAdjustment;
+			Max += m_MinAdjustment;
+			ResultAdjustment = -m_MinAdjustment;
+		}
+		return round_to_int(exp(RelativeValue*(log(Max) - log(Min)) + log(Min))) + ResultAdjustment;
+	}
+} LogarithmicScrollbarScale(25);
 
 class CMenus : public CComponent
 {
@@ -64,78 +115,26 @@ private:
 
 	int DoButton_MouseOver(int ImageID, int SpriteID, const CUIRect *pRect);
 
-	/*static void ui_draw_menu_button(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-	static void ui_draw_keyselect_button(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-	static void ui_draw_menu_tab_button(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-	static void ui_draw_settings_tab_button(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-	*/
-
 	int DoIcon(int ImageId, int SpriteId, const CUIRect *pRect);
 	void DoIconColor(int ImageId, int SpriteId, const CUIRect *pRect, const vec4& Color);
 	int DoButton_GridHeader(const void *pID, const char *pText, int Checked, CUI::EAlignment Align, const CUIRect *pRect);
-	// int DoButton_GridHeaderIcon(CButtonContainer *pBC, int ImageID, int SpriteID, const CUIRect *pRect, int Corners);
 
-	//static void ui_draw_browse_icon(int what, const CUIRect *r);
-	//static void ui_draw_grid_header(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-
-	/*static void ui_draw_checkbox_common(const void *id, const char *text, const char *boxtext, const CUIRect *r, const void *extra);
-	static void ui_draw_checkbox(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-	static void ui_draw_checkbox_number(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
-	*/
-	int DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrSize, float FontSize, float *pOffset, bool Hidden=false, int Corners=CUI::CORNER_ALL);
+	bool DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrSize, float FontSize, float *pOffset, bool Hidden=false, int Corners=CUI::CORNER_ALL);
 	void DoEditBoxOption(void *pID, char *pOption, int OptionLength, const CUIRect *pRect, const char *pStr, float VSplitVal, float *pOffset, bool Hidden=false);
-	void DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, bool Infinite=false);
+	void DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, IScrollbarScale *pScale = &LinearScrollbarScale, bool Infinite=false);
 	float DoDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, float HeaderHeight, FDropdownCallback pfnCallback);
 	float DoIndependentDropdownMenu(void *pID, const CUIRect *pRect, const char *pStr, float HeaderHeight, FDropdownCallback pfnCallback, bool* pActive);
 	void DoInfoBox(const CUIRect *pRect, const char *pLable, const char *pValue);
-	//static int ui_do_edit_box(void *id, const CUIRect *rect, char *str, unsigned str_size, float font_size, bool hidden=false);
 
 	float DoScrollbarV(const void *pID, const CUIRect *pRect, float Current);
 	float DoScrollbarH(const void *pID, const CUIRect *pRect, float Current);
+	void DoJoystickBar(const CUIRect *pRect, float Current, float Tolerance, bool Active);
 	void DoButton_KeySelect(CButtonContainer *pBC, const char *pText, int Checked, const CUIRect *pRect);
 	int DoKeyReader(CButtonContainer *pPC, const CUIRect *pRect, int Key, int Modifier, int* NewModifier);
-
-	//static int ui_do_key_reader(void *id, const CUIRect *rect, int key);
 	void UiDoGetButtons(int Start, int Stop, CUIRect View, float ButtonHeight, float Spacing);
 
-	struct CListboxItem
-	{
-		int m_Visible;
-		int m_Selected;
-		CUIRect m_Rect;
-		CUIRect m_HitRect;
-	};
 
-	struct CListBoxState
-	{
-		CUIRect m_ListBoxOriginalView;
-		CUIRect m_ListBoxView;
-		float m_ListBoxRowHeight;
-		int m_ListBoxItemIndex;
-		int m_ListBoxSelectedIndex;
-		int m_ListBoxNewSelected;
-		int m_ListBoxDoneEvents;
-		int m_ListBoxNumItems;
-		int m_ListBoxItemsPerRow;
-		float m_ListBoxScrollValue;
-		bool m_ListBoxItemActivated;
-
-		CListBoxState()
-		{
-			m_ListBoxScrollValue = 0;
-		}
-	};
-
-	void UiDoListboxHeader(CListBoxState* pState, const CUIRect *pRect, const char *pTitle, float HeaderHeight, float Spacing);
-	void UiDoListboxStart(CListBoxState* pState, const void *pID, float RowHeight, const char *pBottomText, int NumItems,
-						int ItemsPerRow, int SelectedIndex, const CUIRect *pRect=0, bool Background=true);
-	CListboxItem UiDoListboxNextItem(CListBoxState* pState, const void *pID, bool Selected = false, bool* pActive = NULL);
-	CListboxItem UiDoListboxNextRow(CListBoxState* pState);
-	int UiDoListboxEnd(CListBoxState* pState, bool *pItemActivated);
-
-	//static void demolist_listdir_callback(const char *name, int is_dir, void *user);
-	//static void demolist_list_callback(const CUIRect *rect, int index, void *user);
-
+	// Scroll region : found in menus_scrollregion.cpp
 	struct CScrollRegionParams
 	{
 		float m_ScrollbarWidth;
@@ -160,8 +159,8 @@ private:
 			m_ScrollbarMargin = 5;
 			m_SliderMinHeight = 25;
 			m_ScrollSpeed = 5;
-			m_ClipBgColor = vec4(0.0f, 0.0f, 0.0f, 0.5f);
-			m_ScrollbarBgColor = vec4(0.0f, 0.0f, 0.0f, 0.5f);
+			m_ClipBgColor = vec4(0.0f, 0.0f, 0.0f, 0.25f);
+			m_ScrollbarBgColor = vec4(0.0f, 0.0f, 0.0f, 0.25f);
 			m_RailBgColor = vec4(1.0f, 1.0f, 1.0f, 0.25f);
 			m_SliderColor = vec4(0.8f, 0.8f, 0.8f, 1.0f);
 			m_SliderColorHover = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -170,8 +169,39 @@ private:
 		}
 	};
 
-	struct CScrollRegion
+	/*
+	Usage:
+		-- Initialization --
+		static CScrollRegion s_ScrollRegion(this);
+		vec2 ScrollOffset(0, 0);
+		s_ScrollRegion.Begin(&ScrollRegionRect, &ScrollOffset);
+		Content = ScrollRegionRect;
+		Content.y += ScrollOffset.y;
+
+		-- "Register" your content rects --
+		CUIRect Rect;
+		Content.HSplitTop(SomeValue, &Rect, &Content);
+		s_ScrollRegion.AddRect(Rect);
+
+		-- [Optional] Knowing if a rect is clipped --
+		s_ScrollRegion.IsRectClipped(Rect);
+
+		-- [Optional] Scroll to a rect (to the last added rect)--
+		...
+		s_ScrollRegion.AddRect(Rect);
+		s_ScrollRegion.ScrollHere(Option);
+
+		-- End --
+		s_ScrollRegion.End();
+	*/
+	// Instances of CScrollRegion must be static, as member addresses are used as UI item IDs
+	class CScrollRegion
 	{
+	private:
+		CRenderTools *m_pRenderTools;
+		CUI *m_pUI;
+		IInput *m_pInput;
+
 		float m_ScrollY;
 		float m_ContentH;
 		float m_RequestScrollY; // [0, ContentHeight]
@@ -184,57 +214,73 @@ private:
 		bool m_WasClipped;
 		CScrollRegionParams m_Params;
 
+	public:
 		enum {
 			SCROLLHERE_KEEP_IN_VIEW=0,
 			SCROLLHERE_TOP,
 			SCROLLHERE_BOTTOM,
 		};
 
-		CScrollRegion()
-		{
-			m_ScrollY = 0;
-			m_ContentH = 0;
-			m_RequestScrollY = -1;
-			m_ContentScrollOff = vec2(0,0);
-			m_WasClipped = false;
-			m_Params = CScrollRegionParams();
-		}
+		CScrollRegion(CMenus *pMenus);
+		void Begin(CUIRect* pClipRect, vec2* pOutOffset, const CScrollRegionParams* pParams = 0);
+		void End();
+		void AddRect(CUIRect Rect);
+		void ScrollHere(int Option = CScrollRegion::SCROLLHERE_KEEP_IN_VIEW);
+		bool IsRectClipped(const CUIRect& Rect) const;
+		bool IsScrollbarShown() const;
 	};
 
-	// Scroll region
-	/*
+	// Listbox : found in menus_listbox.cpp
+	struct CListboxItem
+	{
+		int m_Visible;
+		int m_Selected;
+		CUIRect m_Rect;
+	};
 
-	Usage:
-		-- Initialization --
-		static CScrollRegion s_ScrollRegion;
-		vec2 ScrollOffset(0, 0);
-		BeginScrollRegion(&s_ScrollRegion, &ScrollRegionRect, &ScrollOffset);
-		Content = ScrollRegionRect;
-		Content.y += ScrollOffset.y;
+	// Instances of CListBox must be static, as member addresses are used as UI item IDs
+	class CListBox
+	{
+	private:
+		CMenus *m_pMenus; // TODO: refactor to remove this
+		CRenderTools *m_pRenderTools;
+		CUI *m_pUI;
+		IInput *m_pInput;
 
-		-- "Register" your content rects --
-		CUIRect Rect;
-		Content.HSplitTop(SomeValue, &Rect, &Content);
-		ScrollRegionAddRect(&s_ScrollRegion, Rect);
+		CUIRect m_ListBoxView;
+		float m_ListBoxRowHeight;
+		int m_ListBoxItemIndex;
+		int m_ListBoxSelectedIndex;
+		int m_ListBoxNewSelected;
+		int m_ListBoxNewSelOffset;
+		int m_ListBoxUpdateScroll;
+		int m_ListBoxDoneEvents;
+		int m_ListBoxNumItems;
+		int m_ListBoxItemsPerRow;
+		bool m_ListBoxItemActivated;
+		const char *m_pBottomText;
+		float m_FooterHeight;
+		CScrollRegion m_ScrollRegion;
+		vec2 m_ScrollOffset;
+		char m_aFilterString[64];
+		float m_OffsetFilter;
 
-		-- [Optionnal] Knowing if a rect is clipped --
-		ScrollRegionIsRectClipped(&s_ScrollRegion, Rect);
+	protected:
+		CListboxItem DoNextRow();
 
-		-- [Optionnal] Scroll to a rect (to the last added rect)--
-		...
-		ScrollRegionAddRect(&s_ScrollRegion, Rect);
-		ScrollRegionScrollHere(&s_ScrollRegion, Option);
+	public:
+		CListBox(CMenus *pMenus);
 
-		-- End --
-		EndScrollRegion(&s_ScrollRegion);
+		void DoHeader(const CUIRect *pRect, const char *pTitle, float HeaderHeight = 20.0f, float Spacing = 2.0f);
+		bool DoFilter(float FilterHeight = 20.0f, float Spacing = 2.0f);
+		void DoFooter(const char *pBottomText, float FooterHeight = 20.0f); // call before DoStart to create a footer
+		void DoStart(float RowHeight, int NumItems, int ItemsPerRow, int SelectedIndex,
+					const CUIRect *pRect = 0, bool Background = true, bool *pActive = 0);
+		CListboxItem DoNextItem(const void *pID, bool Selected = false, bool *pActive = 0);
+		int DoEnd(bool *pItemActivated);
+		bool FilterMatches(const char *pNeedle);
+	};
 
-	*/
-
-	void BeginScrollRegion(CScrollRegion* pSr, CUIRect* pClipRect, vec2* pOutOffset, const CScrollRegionParams* pParams = 0);
-	void EndScrollRegion(CScrollRegion* pSr);
-	void ScrollRegionAddRect(CScrollRegion* pSr, CUIRect Rect);
-	void ScrollRegionScrollHere(CScrollRegion* pSr, int Option = CScrollRegion::SCROLLHERE_KEEP_IN_VIEW);
-	bool ScrollRegionIsRectClipped(CScrollRegion* pSr, const CUIRect& Rect);
 
 	enum
 	{
@@ -289,9 +335,6 @@ private:
 	int m_MenuPage;
 	int m_MenuPageOld;
 	bool m_MenuActive;
-	int m_SidebarTab;
-	bool m_SidebarActive;
-	bool m_ShowServerDetails;
 	bool m_UseMouseButtons;
 	vec2 m_MousePos;
 	vec2 m_PrevMousePos;
@@ -300,6 +343,8 @@ private:
 	bool m_PopupActive;
 	int m_ActiveListBox;
 	bool m_SkinModified;
+	bool m_KeyReaderWasActive;
+	bool m_KeyReaderIsActive;
 
 	// images
 	struct CMenuImage
@@ -398,6 +443,7 @@ private:
 	// for call vote
 	int m_CallvoteSelectedOption;
 	int m_CallvoteSelectedPlayer;
+	char m_aFilterString[VOTE_REASON_LENGTH];
 	char m_aCallvoteReason[VOTE_REASON_LENGTH];
 
 	// for callbacks
@@ -455,10 +501,7 @@ private:
 			if(!m_aName[0] && Other.m_aName[0])
 				return false;
 			int Result = str_comp_nocase(m_aName, Other.m_aName);
-			if(Result < 0 || (Result == 0 && str_comp_nocase(m_aClan, Other.m_aClan) < 0))
-				return true;
-			
-			return false;
+			return Result < 0 || (Result == 0 && str_comp_nocase(m_aClan, Other.m_aClan) < 0);
 		}
 	};
 
@@ -474,20 +517,21 @@ private:
 
 	void FriendlistOnUpdate();
 
+
+	// server browser
 	class CBrowserFilter
 	{
 		bool m_Extended;
 		int m_Custom;
 		char m_aName[64];
 		int m_Filter;
-		class IServerBrowser *m_pServerBrowser;
+		IServerBrowser *m_pServerBrowser;
 
-		static class CServerFilterInfo ms_FilterStandard;
-		static class CServerFilterInfo ms_FilterFavorites;
-		static class CServerFilterInfo ms_FilterAll;
+		static CServerFilterInfo ms_FilterStandard;
+		static CServerFilterInfo ms_FilterFavorites;
+		static CServerFilterInfo ms_FilterAll;
 
 	public:
-
 		enum
 		{
 			FILTER_CUSTOM=0,
@@ -495,6 +539,7 @@ private:
 			FILTER_STANDARD,
 			FILTER_FAVORITES,
 		};
+
 		// buttons var
 		int m_SwitchButton;
 		int m_aButtonID[3];
@@ -511,17 +556,16 @@ private:
 
 		int NumSortedServers() const;
 		int NumPlayers() const;
-		const CServerInfo *SortedGet(int Index) const;
-		const void *ID(int Index) const;
+		const CServerInfo* SortedGet(int Index) const;
+		const void* ID(int Index) const;
 
 		void Reset();
-		void GetFilter(class CServerFilterInfo *pFilterInfo) const;
-		void SetFilter(const class CServerFilterInfo *pFilterInfo);
+		void GetFilter(CServerFilterInfo *pFilterInfo) const;
+		void SetFilter(const CServerFilterInfo *pFilterInfo);
 	};
 
 	array<CBrowserFilter> m_lFilters;
 
-	int m_SelectedFilter;
 	int m_RemoveFilterIndex;
 
 	void LoadFilters();
@@ -549,29 +593,6 @@ private:
 	CInfoOverlay m_InfoOverlay;
 	bool m_InfoOverlayActive;
 
-	class CServerEntry
-	{
-	public:
-		int m_Filter;
-		int m_Index;
-	};
-
-	CServerEntry m_SelectedServer;
-
-	enum
-	{
-		FIXED=1,
-		SPACER=2,
-
-		COL_BROWSER_FLAG=0,
-		COL_BROWSER_NAME,
-		COL_BROWSER_GAMETYPE,
-		COL_BROWSER_MAP,
-		COL_BROWSER_PLAYERS,
-		COL_BROWSER_PING,
-		NUM_BROWSER_COLS,
-	};
-
 	struct CColumn
 	{
 		int m_ID;
@@ -585,8 +606,57 @@ private:
 		CUI::EAlignment m_Align;
 	};
 
+	enum
+	{
+		COL_BROWSER_FLAG=0,
+		COL_BROWSER_NAME,
+		COL_BROWSER_GAMETYPE,
+		COL_BROWSER_MAP,
+		COL_BROWSER_PLAYERS,
+		COL_BROWSER_PING,
+		NUM_BROWSER_COLS,
+
+		ADDR_SELECTION_CHANGE = 1,
+		ADDR_SELECTION_RESET_SERVER_IF_NOT_FOUND = 2,
+		ADDR_SELECTION_REVEAL = 4,
+		ADDR_SELECTION_UPDATE_ADDRESS = 8,
+	};
+	int m_SidebarTab;
+	bool m_SidebarActive;
+	bool m_ShowServerDetails;
+	int m_LastBrowserType; // -1 if not initialized
+	int m_aSelectedFilters[IServerBrowser::NUM_TYPES]; // -1 if none selected, -2 if not initialized
+	int m_aSelectedServers[IServerBrowser::NUM_TYPES]; // -1 if none selected
+	int m_AddressSelection;
 	static CColumn ms_aBrowserCols[NUM_BROWSER_COLS];
 
+	CBrowserFilter* GetSelectedBrowserFilter()
+	{
+		const int Tab = ServerBrowser()->GetType();
+		if(m_aSelectedFilters[Tab] == -1)
+			return 0;
+		return &m_lFilters[m_aSelectedFilters[Tab]];
+	}
+
+	const CServerInfo* GetSelectedServerInfo()
+	{
+		CBrowserFilter* pSelectedFilter = GetSelectedBrowserFilter();
+		if(!pSelectedFilter)
+			return 0;
+		const int Tab = ServerBrowser()->GetType();
+		if(m_aSelectedServers[Tab] < 0 || m_aSelectedServers[Tab] >= pSelectedFilter->NumSortedServers())
+			return 0;
+		return pSelectedFilter->SortedGet(m_aSelectedServers[Tab]);
+	}
+
+	void UpdateServerBrowserAddress();
+	const char *GetServerBrowserAddress();
+	void SetServerBrowserAddress(const char *pAddress);
+	void ServerBrowserFilterOnUpdate();
+	void ServerBrowserSortingOnUpdate();
+
+
+	// video settings
 	enum
 	{
 		MAX_RESOLUTIONS=256,
@@ -612,11 +682,11 @@ private:
 
 	// found in menus.cpp
 	int Render();
-	//void render_background();
-	//void render_loading(float percent);
 	void RenderMenubar(CUIRect r);
 	void RenderNews(CUIRect MainView);
 	void RenderBackButton(CUIRect MainView);
+	inline float GetListHeaderHeight() const { return ms_ListheaderHeight + (g_Config.m_UiWideview ? 3.0f : 0.0f); }
+	inline float GetListHeaderHeightFactor() const { return 1.0f + (g_Config.m_UiWideview ? (3.0f/ms_ListheaderHeight) : 0.0f); }
 
 	// found in menus_demo.cpp
 	void RenderDemoPlayer(CUIRect MainView);
@@ -637,7 +707,6 @@ private:
 	bool RenderServerControlServer(CUIRect MainView);
 
 	// found in menus_browser.cpp
-	// int m_ScrollOffset;
 	void RenderServerbrowserServerList(CUIRect View);
 	void RenderServerbrowserSidebar(CUIRect View);
 	void RenderServerbrowserFriendTab(CUIRect View);
@@ -647,7 +716,6 @@ private:
 	void RenderDetailInfo(CUIRect View, const CServerInfo *pInfo);
 	void RenderDetailScoreboard(CUIRect View, const CServerInfo *pInfo, int RowCount, vec4 TextColor = vec4(1,1,1,1));
 	void RenderServerbrowserServerDetail(CUIRect View, const CServerInfo *pInfo);
-	//void RenderServerbrowserFriends(CUIRect View);
 	void RenderServerbrowserBottomBox(CUIRect View);
 	void RenderServerbrowserOverlay();
 	void RenderFilterHeader(CUIRect View, int FilterIndex);
@@ -655,8 +723,9 @@ private:
 	void RenderServerbrowser(CUIRect MainView);
 	static void ConchainFriendlistUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainServerbrowserSortingUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainToggleMusic(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
-	void DoFriendListEntry(CUIRect *pView, CFriendItem *pFriend, const void *pID, const CFriendInfo *pFriendInfo, const CServerInfo *pServerInfo, bool Checked, bool Clan = false);
+	void DoFriendListEntry(CUIRect *pView, CFriendItem *pFriend, const void *pID, const CContactInfo *pFriendInfo, const CServerInfo *pServerInfo, bool Checked, bool Clan = false);
 	void SetOverlay(int Type, float x, float y, const void *pData);
 	void UpdateFriendCounter(const CServerInfo *pEntry);
 	void UpdateFriends();
@@ -667,6 +736,7 @@ private:
 	void RenderHSLPicker(CUIRect Picker);
 	void RenderSkinSelection(CUIRect MainView);
 	void RenderSkinPartSelection(CUIRect MainView);
+	void RenderSkinPartPalette(CUIRect MainView);
 	void RenderSettingsGeneral(CUIRect MainView);
 	void RenderSettingsPlayer(CUIRect MainView);
 	void RenderSettingsTee(CUIRect MainView);
@@ -675,13 +745,14 @@ private:
 	void RenderSettingsControls(CUIRect MainView);
 	void RenderSettingsGraphics(CUIRect MainView);
 	void RenderSettingsSound(CUIRect MainView);
-	void RenderSettingsStats(CUIRect MainView);
 	void RenderSettings(CUIRect MainView);
 
-	bool DoResolutionList(CUIRect* pRect, CListBoxState* pListBoxState,
+	bool DoResolutionList(CUIRect* pRect, CListBox* pListBox,
 						  const sorted_array<CVideoMode>& lModes);
 
 	// found in menu_callback.cpp
+	static float RenderSettingsControlsMouse(CUIRect View, void *pUser);
+	static float RenderSettingsControlsJoystick(CUIRect View, void *pUser);
 	static float RenderSettingsControlsMovement(CUIRect View, void *pUser);
 	static float RenderSettingsControlsWeapon(CUIRect View, void *pUser);
 	static float RenderSettingsControlsVoting(CUIRect View, void *pUser);
@@ -689,6 +760,8 @@ private:
 	static float RenderSettingsControlsScoreboard(CUIRect View, void *pUser);
 	static float RenderSettingsControlsStats(CUIRect View, void *pUser);
 	static float RenderSettingsControlsMisc(CUIRect View, void *pUser);
+
+	void DoJoystickAxisPicker(CUIRect View);
 
 	void SetActive(bool Active);
 

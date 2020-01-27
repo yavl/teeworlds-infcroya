@@ -15,7 +15,11 @@
 #if defined(CONF_FAMILY_WINDOWS)
 	PFNGLTEXIMAGE3DPROC glTexImage3DInternal;
 
-GLAPI void APIENTRY glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+#if defined (_MSC_VER)
+	GLAPI void GLAPIENTRY glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+#else
+	void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+#endif
 	{
 		glTexImage3DInternal(target, level, internalFormat, width, height, depth, border, format, type, pixels);
 	}
@@ -242,12 +246,13 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 	// screen mapping
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(State.m_ScreenTL.x, State.m_ScreenBR.x, State.m_ScreenBR.y, State.m_ScreenTL.y, 1.0f, 10.f);
+	glOrtho(State.m_ScreenTL.x, State.m_ScreenBR.x, State.m_ScreenBR.y, State.m_ScreenTL.y, -1.0f, 1.0f);
 }
 
 void CCommandProcessorFragment_OpenGL::Cmd_Init(const SCommand_Init *pCommand)
 {
 	m_pTextureMemoryUsage = pCommand->m_pTextureMemoryUsage;
+	*m_pTextureMemoryUsage = 0;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_MaxTexSize);
 	glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &m_Max3DTexSize);
 	dbg_msg("render", "opengl max texture sizes: %d, %d(3D)", m_MaxTexSize, m_Max3DTexSize);
@@ -353,10 +358,11 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 	// 2D texture
 	if(pCommand->m_Flags&CCommandBuffer::TEXFLAG_TEXTURE2D)
 	{
+		bool Mipmaps = !(pCommand->m_Flags&CCommandBuffer::TEXFLAG_NOMIPMAPS);
 		glGenTextures(1, &m_aTextures[pCommand->m_Slot].m_Tex2D);
 		m_aTextures[pCommand->m_Slot].m_State |= CTexture::STATE_TEX2D;
 		glBindTexture(GL_TEXTURE_2D, m_aTextures[pCommand->m_Slot].m_Tex2D);
-		if(pCommand->m_Flags&CCommandBuffer::TEXFLAG_NOMIPMAPS)
+		if(!Mipmaps)
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -374,13 +380,16 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 
 		// calculate memory usage
 		m_aTextures[pCommand->m_Slot].m_MemSize = Width*Height*pCommand->m_PixelSize;
-		int TexWidth = Width;
-		int TexHeight = Height;
-		while(TexWidth > 2 && TexHeight > 2)
+		if(Mipmaps)
 		{
-			TexWidth>>=1;
-			TexHeight>>=1;
-			m_aTextures[pCommand->m_Slot].m_MemSize += TexWidth*TexHeight*pCommand->m_PixelSize;
+			int TexWidth = Width;
+			int TexHeight = Height;
+			while(TexWidth > 2 && TexHeight > 2)
+			{
+				TexWidth>>=1;
+				TexHeight>>=1;
+				m_aTextures[pCommand->m_Slot].m_MemSize += TexWidth*TexHeight*pCommand->m_PixelSize;
+			}
 		}
 	}
 
@@ -441,9 +450,9 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 {
 	SetState(pCommand->m_State);
 
-	glVertexPointer(3, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices);
-	glTexCoordPointer(3, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*3);
-	glColorPointer(4, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*6);
+	glVertexPointer(2, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices);
+	glTexCoordPointer(3, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*2);
+	glColorPointer(4, GL_FLOAT, sizeof(CCommandBuffer::SVertex), (char*)pCommand->m_pVertices + sizeof(float)*5);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -758,6 +767,14 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Screen, int *pWind
 	SDL_GL_SetSwapInterval(Flags&IGraphicsBackend::INITFLAG_VSYNC ? 1 : 0);
 
 	SDL_GL_MakeCurrent(NULL, NULL);
+
+	// print sdl version
+	SDL_version Compiled;
+	SDL_version Linked;
+
+	SDL_VERSION(&Compiled);
+	SDL_GetVersion(&Linked);
+	dbg_msg("sdl", "SDL version %d.%d.%d (dll = %d.%d.%d)", Compiled.major, Compiled.minor, Compiled.patch, Linked.major, Linked.minor, Linked.patch);
 
 	// start the command processor
 	m_pProcessor = new CCommandProcessor_SDL_OpenGL;

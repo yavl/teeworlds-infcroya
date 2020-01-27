@@ -412,6 +412,7 @@ class CNetServer
 	NETSOCKET m_Socket;
 	class CNetBan *m_pNetBan;
 	CSlot m_aSlots[NET_MAX_CLIENTS];
+	int m_NumClients;
 	int m_MaxClients;
 	int m_MaxClientsPerIP;
 
@@ -424,13 +425,10 @@ class CNetServer
 	CNetTokenManager m_TokenManager;
 	CNetTokenCache m_TokenCache;
 
-	int m_Flags;
 public:
-	int SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
-
 	//
-	bool Open(NETADDR BindAddr, class CNetBan *pNetBan, int MaxClients, int MaxClientsPerIP, int Flags);
-	int Close();
+	bool Open(NETADDR BindAddr, class CNetBan *pNetBan, int MaxClients, int MaxClientsPerIP, NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
+	void Close();
 
 	// the token parameter is only used for connless packets
 	int Recv(CNetChunk *pChunk, TOKEN *pResponseToken = 0);
@@ -439,17 +437,17 @@ public:
 	void AddToken(const NETADDR *pAddr, TOKEN Token) { m_TokenCache.AddToken(pAddr, Token, 0); };
 
 	//
-	int Drop(int ClientID, const char *pReason);
+	void Drop(int ClientID, const char *pReason);
 
 	// status requests
 	const NETADDR *ClientAddr(int ClientID) const { return m_aSlots[ClientID].m_Connection.PeerAddress(); }
 	NETSOCKET Socket() const { return m_Socket; }
 	class CNetBan *NetBan() const { return m_pNetBan; }
 	int NetType() const { return m_Socket.type; }
-	int MaxClients() const { return m_MaxClients; }
 
 	//
-	void SetMaxClientsPerIP(int Max);
+	void SetMaxClients(int MaxClients);
+	void SetMaxClientsPerIP(int MaxClientsPerIP);
 };
 
 class CNetConsole
@@ -470,11 +468,9 @@ class CNetConsole
 	CNetRecvUnpacker m_RecvUnpacker;
 
 public:
-	void SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
-
 	//
-	bool Open(NETADDR BindAddr, class CNetBan *pNetBan, int Flags);
-	int Close();
+	bool Open(NETADDR BindAddr, class CNetBan *pNetBan, NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
+	void Close();
 
 	//
 	int Recv(char *pLine, int MaxLength, int *pClientID = 0);
@@ -483,7 +479,7 @@ public:
 
 	//
 	int AcceptClient(NETSOCKET Socket, const NETADDR *pAddr);
-	int Drop(int ClientID, const char *pReason);
+	void Drop(int ClientID, const char *pReason);
 
 	// status requests
 	const NETADDR *ClientAddr(int ClientID) const { return m_aSlots[ClientID].m_Connection.PeerAddress(); }

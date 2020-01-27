@@ -178,7 +178,7 @@ void CServerBan::InitServerBan(IConsole *pConsole, IStorage *pStorage, CServer* 
 	m_pServer = pServer;
 
 	// overwrites base command, todo: improve this
-	Console()->Register("ban", "s?ir", CFGFLAG_SERVER|CFGFLAG_STORE, ConBanExt, this, "Ban player with ip/client id for x minutes for any reason");
+	Console()->Register("ban", "s?ir", CFGFLAG_SERVER|CFGFLAG_STORE, ConBanExt, this, "Ban player with IP/IP range/client id for x minutes for any reason");
 }
 
 template<class T>
@@ -328,7 +328,9 @@ void CServer::SetClientName(int ClientID, const char *pName)
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY || !pName)
 		return;
 
-	str_copy(m_aClients[ClientID].m_aName, pName, MAX_NAME_LENGTH);
+	const char *pDefaultName = "(1)";
+	pName = str_utf8_skip_whitespaces(pName);
+	str_copy(m_aClients[ClientID].m_aName, *pName ? pName : pDefaultName, MAX_NAME_LENGTH);
 }
 
 void CServer::SetClientClan(int ClientID, const char *pClan)
@@ -566,11 +568,6 @@ int CServer::ClientCountry(int ClientID) const
 bool CServer::ClientIngame(int ClientID) const
 {
 	return ClientID >= 0 && ClientID < MAX_CLIENTS && m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME;
-}
-
-int CServer::MaxClients() const
-{
-	return m_NetServer.MaxClients();
 }
 
 void CServer::InitRconPasswordIfUnset()
@@ -884,7 +881,7 @@ void CServer::SendRconCmdRem(const IConsole::CCommandInfo *pCommandInfo, int Cli
 
 void CServer::UpdateClientRconCommands()
 {
-	for(int ClientID = Tick() % MAX_RCONCMD_RATIO; ClientID < MaxClients(); ClientID += MAX_RCONCMD_RATIO)
+	for(int ClientID = Tick() % MAX_RCONCMD_RATIO; ClientID < MAX_CLIENTS; ClientID += MAX_RCONCMD_RATIO)
 	{
 		if(m_aClients[ClientID].m_State != CClient::STATE_EMPTY && m_aClients[ClientID].m_Authed)
 		{
@@ -915,7 +912,7 @@ void CServer::SendMapListEntryRem(const CMapListEntry *pMapListEntry, int Client
 
 void CServer::UpdateClientMapListEntries()
 {
-	for(int ClientID = Tick() % MAX_RCONCMD_RATIO; ClientID < MaxClients(); ClientID += MAX_RCONCMD_RATIO)
+	for(int ClientID = Tick() % MAX_RCONCMD_RATIO; ClientID < MAX_CLIENTS; ClientID += MAX_RCONCMD_RATIO)
 	{
 		if(m_aClients[ClientID].m_State != CClient::STATE_EMPTY && m_aClients[ClientID].m_Authed)
 		{
@@ -1157,7 +1154,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					str_format(aBuf, sizeof(aBuf), "ClientID=%d authed (moderator)", ClientID);
 					Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 				}
-				else if(g_Config.m_SvRconMaxTries)
+				else if(g_Config.m_SvRconMaxTries && m_ServerBan.IsBannable(m_NetServer.ClientAddr(ClientID)))
 				{
 					m_aClients[ClientID].m_AuthTries++;
 					char aBuf[128];
@@ -1243,14 +1240,18 @@ void CServer::GenerateServerInfo(CPacker *pPacker, int Token)
 	pPacker->AddString(GameServer()->GameType(), 16);
 
 	// flags
-	int Flag = g_Config.m_Password[0] ? SERVERINFO_FLAG_PASSWORD : 0;	// password set
-	pPacker->AddInt(Flag);
+	int Flags = 0;
+	if(g_Config.m_Password[0])  // password set
+		Flags |= SERVERINFO_FLAG_PASSWORD;
+	if(GameServer()->TimeScore())
+		Flags |= SERVERINFO_FLAG_TIMESCORE;
+	pPacker->AddInt(Flags);
 
 	pPacker->AddInt(g_Config.m_SvSkillLevel);	// server skill level
 	pPacker->AddInt(PlayerCount); // num players
 	pPacker->AddInt(g_Config.m_SvPlayerSlots); // max players
 	pPacker->AddInt(ClientCount); // num clients
-	pPacker->AddInt(m_NetServer.MaxClients()); // max clients
+	pPacker->AddInt(max(ClientCount, g_Config.m_SvMaxClients)); // max clients
 
 	if(Token != -1)
 	{
@@ -1428,13 +1429,11 @@ int CServer::Run()
 		BindAddr.port = g_Config.m_SvPort;
 	}
 
-	if(!m_NetServer.Open(BindAddr, &m_ServerBan, g_Config.m_SvMaxClients, g_Config.m_SvMaxClientsPerIP, 0))
+	if(!m_NetServer.Open(BindAddr, &m_ServerBan, g_Config.m_SvMaxClients, g_Config.m_SvMaxClientsPerIP, NewClientCallback, DelClientCallback, this))
 	{
 		dbg_msg("server", "couldn't open socket. port %d might already be in use", g_Config.m_SvPort);
 		return -1;
 	}
-
-	m_NetServer.SetCallbacks(NewClientCallback, DelClientCallback, this);
 
 	m_Econ.Init(Console(), &m_ServerBan);
 
@@ -1580,13 +1579,8 @@ int CServer::Run()
 		}
 	}
 	// disconnect all clients on shutdown
-	for(int i = 0; i < MAX_CLIENTS; ++i)
-	{
-		if(m_aClients[i].m_State != CClient::STATE_EMPTY)
-			m_NetServer.Drop(i, "Server shutdown");
-
-		m_Econ.Shutdown();
-	}
+	m_NetServer.Close();
+	m_Econ.Shutdown();
 
 	GameServer()->OnShutdown();
 	m_pMap->Unload();
@@ -1764,6 +1758,27 @@ void CServer::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserD
 	}
 }
 
+void CServer::ConchainPlayerSlotsUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	pfnCallback(pResult, pCallbackUserData);
+	if(pResult->NumArguments())
+	{
+		if(g_Config.m_SvMaxClients < g_Config.m_SvPlayerSlots)
+			g_Config.m_SvPlayerSlots = g_Config.m_SvMaxClients;
+	}
+}
+
+void CServer::ConchainMaxclientsUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	pfnCallback(pResult, pCallbackUserData);
+	if(pResult->NumArguments())
+	{
+		if(g_Config.m_SvMaxClients < g_Config.m_SvPlayerSlots)
+			g_Config.m_SvPlayerSlots = g_Config.m_SvMaxClients;
+		((CServer *)pUserData)->m_NetServer.SetMaxClients(pResult->GetInteger(0));
+	}
+}
+
 void CServer::ConchainMaxclientsperipUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData);
@@ -1830,7 +1845,7 @@ void CServer::RegisterCommands()
 	Console()->Register("kick", "i?r", CFGFLAG_SERVER, ConKick, this, "Kick player with specified id for any reason");
 	Console()->Register("status", "", CFGFLAG_SERVER, ConStatus, this, "List players");
 	Console()->Register("shutdown", "", CFGFLAG_SERVER, ConShutdown, this, "Shut down");
-	Console()->Register("logout", "", CFGFLAG_SERVER, ConLogout, this, "Logout of rcon");
+	Console()->Register("logout", "", CFGFLAG_SERVER|CFGFLAG_BASICACCESS, ConLogout, this, "Logout of rcon");
 
 	Console()->Register("record", "?s", CFGFLAG_SERVER|CFGFLAG_STORE, ConRecord, this, "Record to a file");
 	Console()->Register("stoprecord", "", CFGFLAG_SERVER, ConStopRecord, this, "Stop recording");
@@ -1840,6 +1855,9 @@ void CServer::RegisterCommands()
 	Console()->Chain("sv_name", ConchainSpecialInfoupdate, this);
 	Console()->Chain("password", ConchainSpecialInfoupdate, this);
 
+	Console()->Chain("sv_player_slots", ConchainPlayerSlotsUpdate, this);
+	Console()->Chain("sv_max_clients", ConchainMaxclientsUpdate, this);
+	Console()->Chain("sv_max_clients", ConchainSpecialInfoupdate, this);
 	Console()->Chain("sv_max_clients_per_ip", ConchainMaxclientsperipUpdate, this);
 	Console()->Chain("mod_command", ConchainModCommandUpdate, this);
 	Console()->Chain("console_output_level", ConchainConsoleOutputLevelUpdate, this);
@@ -1973,7 +1991,7 @@ int main(int argc, const char **argv) // ignore_convention
 
 	// run the server
 	dbg_msg("server", "starting...");
-	pServer->Run();
+	int Ret = pServer->Run();
 
 	// free
 	delete pServer;
@@ -1986,6 +2004,6 @@ int main(int argc, const char **argv) // ignore_convention
 	delete pStorage;
 	delete pConfig;
 
-	return 0;
+	return Ret;
 }
 

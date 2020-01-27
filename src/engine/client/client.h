@@ -78,9 +78,11 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	class CDemoRecorder m_DemoRecorder;
 	class CServerBrowser m_ServerBrowser;
 	class CFriends m_Friends;
+	class CBlacklist m_Blacklist;
 	class CMapChecker m_MapChecker;
 
 	char m_aServerAddressStr[256];
+	char m_aServerPassword[128];
 
 	unsigned m_SnapshotParts;
 	int64 m_LocalStartTime;
@@ -98,6 +100,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	int m_WindowMustRefocus;
 	int m_SnapCrcErrors;
 	bool m_AutoScreenshotRecycle;
+	bool m_AutoStatScreenshotRecycle;
 	bool m_EditorActive;
 	bool m_SoundInitFailed;
 	bool m_ResortServerBrowser;
@@ -160,8 +163,8 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	class CSnapshotStorage m_SnapshotStorage;
 	CSnapshotStorage::CHolder *m_aSnapshots[NUM_SNAPSHOT_TYPES];
 
-	int m_RecivedSnapshots;
-	char m_aSnapshotIncommingData[CSnapshot::MAX_SIZE];
+	int m_ReceivedSnapshots;
+	char m_aSnapshotIncomingData[CSnapshot::MAX_SIZE];
 
 	class CSnapshotStorage::CHolder m_aDemorecSnapshotHolders[NUM_SNAPSHOT_TYPES];
 	char *m_aDemorecSnapshotData[NUM_SNAPSHOT_TYPES][2][CSnapshot::MAX_SIZE];
@@ -232,13 +235,14 @@ public:
 	// called when the map is loaded and we should init for a new round
 	void OnEnterGame();
 	virtual void EnterGame();
+	void OnClientOnline();
 
 	virtual void Connect(const char *pAddress);
 	void DisconnectWithReason(const char *pReason);
 	virtual void Disconnect();
 
 
-	virtual void GetServerInfo(CServerInfo *pServerInfo) const;
+	virtual void GetServerInfo(CServerInfo *pServerInfo);
 
 	int LoadData();
 
@@ -265,6 +269,7 @@ public:
 	void ProcessConnlessPacket(CNetChunk *pPacket);
 	void ProcessServerPacket(CNetChunk *pPacket);
 
+	const char *GetCurrentMapName() const { return m_aCurrentMap; }
 	const char *GetCurrentMapPath() const { return m_aCurrentMapPath; }
 	virtual const char *MapDownloadName() const { return m_aMapdownloadName; }
 	virtual int MapDownloadAmount() const { return m_MapdownloadAmount; }
@@ -284,6 +289,7 @@ public:
 	void Run();
 
 	void ConnectOnStart(const char *pAddress);
+	void DoVersionSpecificActions();
 
 	static void Con_Connect(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Disconnect(IConsole::IResult *pResult, void *pUserData);
@@ -315,6 +321,7 @@ public:
 	void RecordGameMessage(bool State) { m_RecordGameMessage = State; }
 
 	void AutoScreenshot_Start();
+	void AutoStatScreenshot_Start();
 	void AutoScreenshot_Cleanup();
 
 	void ServerBrowserUpdate();

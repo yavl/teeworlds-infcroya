@@ -397,7 +397,7 @@ void CCharacterCore::Move()
 					continue; // no hook for hook protected humans
 				// INFCROYA END ------------------------------------------------------------//
 				float D = distance(Pos, pCharCore->m_Pos);
-				if(D < PhysSize && D > 0.0f)
+				if(D < PhysSize && D >= 0.0f)
 				{
 					if(a > 0.0f)
 						m_Pos = LastPos;

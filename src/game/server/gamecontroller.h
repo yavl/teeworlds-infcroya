@@ -4,6 +4,7 @@
 #define GAME_SERVER_GAMECONTROLLER_H
 
 #include <base/vmath.h>
+#include <base/tl/array.h>
 
 #include <generated/protocol.h>
 // INFCROYA BEGIN ------------------------------------------------------------
@@ -83,6 +84,7 @@ class IGameController
 
 		vec2 m_Pos;
 		bool m_Got;
+		bool m_RandomSpawn;
 		int m_FriendlyTeam;
 		float m_Score;
 	};
@@ -121,6 +123,46 @@ protected:
 	} m_GameInfo;
 
 	void UpdateGameInfo(int ClientID);
+
+	typedef void (*COMMAND_CALLBACK)(class CPlayer *pPlayer, const char *pArgs);
+
+	//static void Com_Example(class CPlayer *pPlayer, const char *pArgs);
+
+	struct CChatCommand 
+	{
+		char m_aName[32];
+		char m_aHelpText[64];
+		char m_aArgsFormat[16];
+		COMMAND_CALLBACK m_pfnCallback;
+		bool m_Used;
+	};
+
+	class CChatCommands
+	{
+		enum
+		{
+			// 8 is the number of vanilla commands, 14 the number of commands left to fill the chat.
+			MAX_COMMANDS = 8 + 14
+		};
+
+		CChatCommand m_aCommands[MAX_COMMANDS];
+	public:
+		CChatCommands();
+
+		// Format: i = int, s = string, p = playername, c = subcommand
+		void AddCommand(const char *pName, const char *pArgsFormat, const char *pHelpText, COMMAND_CALLBACK pfnCallback);
+		void RemoveCommand(const char *pName);
+		void SendRemoveCommand(class IServer *pServer, const char *pName, int ID);
+		CChatCommand *GetCommand(const char *pName);
+
+		void OnPlayerConnect(class IServer *pServer, class CPlayer *pPlayer);
+
+		void OnInit();
+	};
+
+	CChatCommands m_Commands;
+
+	CChatCommands *CommandsManager() { return &m_Commands; }
 
 public:
 	IGameController(class CGameContext *pGameServer);
@@ -167,6 +209,7 @@ public:
 	virtual void OnPlayerDisconnect(class CPlayer *pPlayer); // INFCROYA RELATED
 	void OnPlayerInfoChange(class CPlayer *pPlayer);
 	void OnPlayerReadyChange(class CPlayer *pPlayer);
+	void OnPlayerCommand(class CPlayer *pPlayer, const char *pCommandName, const char *pCommandArgs);
 
 	void OnReset();
 
@@ -194,14 +237,16 @@ public:
 	// info
 	void CheckGameInfo();
 	virtual bool IsFriendlyFire(int ClientID1, int ClientID2) const; // INFCROYA RELATED
+	bool IsFriendlyTeamFire(int Team1, int Team2) const;
 	bool IsGamePaused() const { return m_GameState == IGS_GAME_PAUSED || m_GameState == IGS_START_COUNTDOWN; }
 	bool IsGameRunning() const { return m_GameState == IGS_GAME_RUNNING; }
 	bool IsPlayerReadyMode() const;
 	bool IsTeamChangeAllowed() const;
 	bool IsTeamplay() const { return m_GameFlags&GAMEFLAG_TEAMS; }
-	
+	bool IsSurvival() const { return m_GameFlags&GAMEFLAG_SURVIVAL; }
+
 	const char *GetGameType() const { return m_pGameType; }
-	
+
 	// map
 	void ChangeMap(const char *pToMap);
 

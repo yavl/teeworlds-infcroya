@@ -40,7 +40,7 @@
 #include <mastersrv/mastersrv.h>
 #include <versionsrv/versionsrv.h>
 
-#include "friends.h"
+#include "contacts.h"
 #include "serverbrowser.h"
 #include "client.h"
 
@@ -262,6 +262,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_WindowMustRefocus = 0;
 	m_SnapCrcErrors = 0;
 	m_AutoScreenshotRecycle = false;
+	m_AutoStatScreenshotRecycle = false;
 	m_EditorActive = false;
 
 	m_AckGameTick = -1;
@@ -298,10 +299,11 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	m_State = IClient::STATE_OFFLINE;
 	m_aServerAddressStr[0] = 0;
+	m_aServerPassword[0] = 0;
 
 	mem_zero(m_aSnapshots, sizeof(m_aSnapshots));
 	m_SnapshotStorage.Init();
-	m_RecivedSnapshots = 0;
+	m_ReceivedSnapshots = 0;
 
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
 }
@@ -337,9 +339,15 @@ int CClient::SendMsg(CMsgPacker *pMsg, int Flags)
 
 void CClient::SendInfo()
 {
+	// restore password of favorite if possible
+	const char *pPassword = m_ServerBrowser.GetFavoritePassword(m_aServerAddressStr);
+	if(!pPassword)
+		pPassword = g_Config.m_Password;
+	str_copy(m_aServerPassword, pPassword, sizeof(m_aServerPassword));
+
 	CMsgPacker Msg(NETMSG_INFO, true);
 	Msg.AddString(GameClient()->NetVersion(), 128);
-	Msg.AddString(g_Config.m_Password, 128);
+	Msg.AddString(m_aServerPassword, 128);
 	Msg.AddInt(GameClient()->ClientVersion());
 	SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
@@ -453,7 +461,11 @@ void CClient::SetState(int s)
 	}
 	m_State = s;
 	if(Old != s)
+	{
 		GameClient()->OnStateChange(m_State, Old);
+		if(s == IClient::STATE_ONLINE)
+			OnClientOnline();
+	}
 }
 
 // called when the map is loaded and we should init for a new round
@@ -469,7 +481,7 @@ void CClient::OnEnterGame()
 	m_aSnapshots[SNAP_CURRENT] = 0;
 	m_aSnapshots[SNAP_PREV] = 0;
 	m_SnapshotStorage.PurgeAll();
-	m_RecivedSnapshots = 0;
+	m_ReceivedSnapshots = 0;
 	m_SnapshotParts = 0;
 	m_PredTick = 0;
 	m_CurrentRecvTick = 0;
@@ -487,6 +499,20 @@ void CClient::EnterGame()
 	// to finish the connection
 	SendEnterGame();
 	OnEnterGame();
+}
+
+void CClient::OnClientOnline()
+{
+	DemoRecorder_HandleAutoStart();
+
+	// store password and server as favorite if configured, if the server was password protected
+	CServerInfo Info = {0};
+	GetServerInfo(&Info);
+	bool ShouldStorePassword = g_Config.m_ClSaveServerPasswords == 2 || (g_Config.m_ClSaveServerPasswords == 1 && Info.m_Favorite);
+	if(m_aServerPassword[0] && ShouldStorePassword && (Info.m_Flags&IServerBrowser::FLAG_PASSWORD))
+	{
+		m_ServerBrowser.SetFavoritePassword(m_aServerAddressStr, m_aServerPassword);
+	}
 }
 
 void CClient::Connect(const char *pAddress)
@@ -535,6 +561,14 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_DemoPlayer.Stop();
 	DemoRecorder_Stop();
 
+	// reset password stored in favorites if it's invalid
+	if(pReason && str_find_nocase(pReason, "password"))
+	{
+		const char *pPassword = m_ServerBrowser.GetFavoritePassword(m_aServerAddressStr);
+		if(pPassword && str_comp(pPassword, m_aServerPassword) == 0)
+			m_ServerBrowser.SetFavoritePassword(m_aServerAddressStr, 0);
+	}
+
 	//
 	m_RconAuthed = 0;
 	m_UseTempRconCommands = 0;
@@ -557,11 +591,13 @@ void CClient::DisconnectWithReason(const char *pReason)
 	// clear the current server info
 	mem_zero(&m_CurrentServerInfo, sizeof(m_CurrentServerInfo));
 	mem_zero(&m_ServerAddress, sizeof(m_ServerAddress));
+	m_aServerAddressStr[0] = 0;
+	m_aServerPassword[0] = 0;
 
 	// clear snapshots
 	m_aSnapshots[SNAP_CURRENT] = 0;
 	m_aSnapshots[SNAP_PREV] = 0;
-	m_RecivedSnapshots = 0;
+	m_ReceivedSnapshots = 0;
 }
 
 void CClient::Disconnect()
@@ -570,9 +606,10 @@ void CClient::Disconnect()
 }
 
 
-void CClient::GetServerInfo(CServerInfo *pServerInfo) const
+void CClient::GetServerInfo(CServerInfo *pServerInfo)
 {
 	mem_copy(pServerInfo, &m_CurrentServerInfo, sizeof(m_CurrentServerInfo));
+	m_ServerBrowser.UpdateFavoriteState(pServerInfo);
 }
 
 int CClient::LoadData()
@@ -585,20 +622,18 @@ int CClient::LoadData()
 
 const void *CClient::SnapGetItem(int SnapID, int Index, CSnapItem *pItem) const
 {
-	CSnapshotItem *i;
 	dbg_assert(SnapID >= 0 && SnapID < NUM_SNAPSHOT_TYPES, "invalid SnapID");
-	i = m_aSnapshots[SnapID]->m_pAltSnap->GetItem(Index);
+	const CSnapshotItem *i = m_aSnapshots[SnapID]->m_pAltSnap->GetItem(Index);
 	pItem->m_DataSize = m_aSnapshots[SnapID]->m_pAltSnap->GetItemSize(Index);
 	pItem->m_Type = i->Type();
 	pItem->m_ID = i->ID();
-	return (void *)i->Data();
+	return i->Data();
 }
 
 void CClient::SnapInvalidateItem(int SnapID, int Index)
 {
-	CSnapshotItem *i;
 	dbg_assert(SnapID >= 0 && SnapID < NUM_SNAPSHOT_TYPES, "invalid SnapID");
-	i = m_aSnapshots[SnapID]->m_pAltSnap->GetItem(Index);
+	const CSnapshotItem *i = m_aSnapshots[SnapID]->m_pAltSnap->GetItem(Index);
 	if(i)
 	{
 		if((char *)i < (char *)m_aSnapshots[SnapID]->m_pAltSnap || (char *)i > (char *)m_aSnapshots[SnapID]->m_pAltSnap + m_aSnapshots[SnapID]->m_SnapSize)
@@ -609,33 +644,16 @@ void CClient::SnapInvalidateItem(int SnapID, int Index)
 	}
 }
 
-static const int* SnapSearchKey(const int* pKeysStart, const int* pKeysEnd, int Key)
-{
-	int MiddleIndex = (pKeysEnd - pKeysStart) / 2;
-	int Middle = pKeysStart[MiddleIndex];
-	if(MiddleIndex == 0)
-		return Middle == Key ? pKeysStart : 0x0;
-	if(Middle > Key)
-		return SnapSearchKey(pKeysStart, pKeysStart+MiddleIndex, Key);
-	if(Middle < Key)
-		return SnapSearchKey(pKeysStart+MiddleIndex, pKeysEnd, Key);
-	// ==
-	return pKeysStart + MiddleIndex;
-}
-
 const void *CClient::SnapFindItem(int SnapID, int Type, int ID) const
 {
 	if(!m_aSnapshots[SnapID])
 		return 0x0;
 
-	const int NumItems = m_aSnapshots[SnapID]->m_pSnap->NumItems();
 	CSnapshot* pAltSnap = m_aSnapshots[SnapID]->m_pAltSnap;
-	const int* pItemKeys = pAltSnap->GetItemKeys();
-
 	int Key = (Type<<16)|(ID&0xffff);
-	int Index = SnapSearchKey(pItemKeys, pItemKeys+NumItems, Key) - pItemKeys;
-	if(Index >= 0 && Index < NumItems)
-		return (void *)pAltSnap->GetItem(Index)->Data();
+	int Index = pAltSnap->GetItemIndex(Key);
+	if(Index != -1)
+		return pAltSnap->GetItem(Index)->Data();
 
 	return 0x0;
 }
@@ -814,7 +832,7 @@ const char *CClient::LoadMap(const char *pName, const char *pFilename, const SHA
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "loaded map '%s'", pFilename);
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
-	m_RecivedSnapshots = 0;
+	m_ReceivedSnapshots = 0;
 
 	str_copy(m_aCurrentMap, pName, sizeof(m_aCurrentMap));
 	str_copy(m_aCurrentMapPath, pFilename, sizeof(m_aCurrentMapPath));
@@ -898,7 +916,12 @@ int CClient::UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pTo
 		str_copy(pInfo->m_aHostname, pInfo->m_aAddress, sizeof(pInfo->m_aHostname));
 	str_copy(pInfo->m_aMap, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aMap));
 	str_copy(pInfo->m_aGameType, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aGameType));
-	pInfo->m_Flags = (pUnpacker->GetInt()&SERVERINFO_FLAG_PASSWORD) ? IServerBrowser::FLAG_PASSWORD : 0;
+	int Flags = pUnpacker->GetInt();
+	pInfo->m_Flags = 0;
+	if(Flags&SERVERINFO_FLAG_PASSWORD)
+		pInfo->m_Flags |= IServerBrowser::FLAG_PASSWORD;
+	if(Flags&SERVERINFO_FLAG_TIMESCORE)
+		pInfo->m_Flags |= IServerBrowser::FLAG_TIMESCORE;
 	pInfo->m_ServerLevel = clamp<int>(pUnpacker->GetInt(), SERVERINFO_LEVEL_MIN, SERVERINFO_LEVEL_MAX);
 	pInfo->m_NumPlayers = pUnpacker->GetInt();
 	pInfo->m_MaxPlayers = pUnpacker->GetInt();
@@ -946,6 +969,34 @@ int CClient::UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pTo
 	pInfo->m_NumClients = NumClients;
 
 	return 0;
+}
+
+bool CompareScore(const CServerInfo::CClient &C1, const CServerInfo::CClient &C2)
+{
+	if(C1.m_PlayerType&CServerInfo::CClient::PLAYERFLAG_SPEC)
+		return false;
+	if(C2.m_PlayerType&CServerInfo::CClient::PLAYERFLAG_SPEC)
+		return true;
+	return C1.m_Score > C2.m_Score;
+}
+
+bool CompareTime(const CServerInfo::CClient &C1, const CServerInfo::CClient &C2)
+{
+	if(C1.m_PlayerType&CServerInfo::CClient::PLAYERFLAG_SPEC)
+		return false;
+	if(C2.m_PlayerType&CServerInfo::CClient::PLAYERFLAG_SPEC)
+		return true;
+	if(C1.m_Score < 0)
+		return false;
+	if(C2.m_Score < 0)
+		return true;
+	return C1.m_Score < C2.m_Score;
+}
+
+inline void SortClients(CServerInfo *pInfo)
+{
+	std::stable_sort(pInfo->m_aClients, pInfo->m_aClients + pInfo->m_NumClients,
+		(pInfo->m_Flags&IServerBrowser::FLAG_TIMESCORE) ? CompareTime : CompareScore);
 }
 
 void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
@@ -1058,7 +1109,7 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 		int Token;
 		if(!UnpackServerInfo(&Up, &Info, &Token) && !Up.Error())
 		{
-			std::stable_sort(Info.m_aClients, Info.m_aClients + Info.m_NumClients);
+			SortClients(&Info);
 			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info);
 		}
 	}
@@ -1199,7 +1250,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			net_addr_str(&pPacket->m_Address, Info.m_aAddress, sizeof(Info.m_aAddress), true);
 			if(!UnpackServerInfo(&Unpacker, &Info, 0) && !Unpacker.Error())
 			{
-				std::stable_sort(Info.m_aClients, Info.m_aClients + Info.m_NumClients);
+				SortClients(&Info);
 				mem_copy(&m_CurrentServerInfo, &Info, sizeof(m_CurrentServerInfo));
 				m_CurrentServerInfo.m_NetAddr = m_ServerAddress;
 			}
@@ -1325,7 +1376,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				}
 
 				// TODO: clean this up abit
-				mem_copy((char*)m_aSnapshotIncommingData + Part*MAX_SNAPSHOT_PACKSIZE, pData, PartSize);
+				mem_copy((char*)m_aSnapshotIncomingData + Part*MAX_SNAPSHOT_PACKSIZE, pData, PartSize);
 				m_SnapshotParts |= 1<<Part;
 
 				if(m_SnapshotParts == (unsigned)((1<<NumParts)-1))
@@ -1377,7 +1428,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 
 					if(CompleteSize)
 					{
-						int IntSize = CVariableInt::Decompress(m_aSnapshotIncommingData, CompleteSize, aTmpBuffer2, sizeof(aTmpBuffer2));
+						int IntSize = CVariableInt::Decompress(m_aSnapshotIncomingData, CompleteSize, aTmpBuffer2, sizeof(aTmpBuffer2));
 
 						if(IntSize < 0) // failure during decompression, bail
 							return;
@@ -1444,12 +1495,12 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 					}
 
 					// apply snapshot, cycle pointers
-					m_RecivedSnapshots++;
+					m_ReceivedSnapshots++;
 
 					m_CurrentRecvTick = GameTick;
 
 					// we got two snapshots until we see us self as connected
-					if(m_RecivedSnapshots == 2)
+					if(m_ReceivedSnapshots == 2)
 					{
 						// start at 200ms and work from there
 						m_PredictedTime.Init(GameTick*time_freq()/50);
@@ -1458,11 +1509,10 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 						m_aSnapshots[SNAP_PREV] = m_SnapshotStorage.m_pFirst;
 						m_aSnapshots[SNAP_CURRENT] = m_SnapshotStorage.m_pLast;
 						SetState(IClient::STATE_ONLINE);
-						DemoRecorder_HandleAutoStart();
 					}
 
 					// adjust game time
-					if(m_RecivedSnapshots > 2)
+					if(m_ReceivedSnapshots > 2)
 					{
 						int64 Now = m_GameTime.Get(time_get());
 						int64 TickStart = GameTick*time_freq()/50;
@@ -1499,7 +1549,7 @@ void CClient::PumpNetwork()
 		if(State() != IClient::STATE_OFFLINE && State() != IClient::STATE_QUITING && m_NetClient.State() == NETSTATE_OFFLINE)
 		{
 			SetState(IClient::STATE_OFFLINE);
-			Disconnect();
+			DisconnectWithReason(m_NetClient.ErrorString());
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "offline error='%s'", m_NetClient.ErrorString());
 			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
@@ -1619,7 +1669,7 @@ void CClient::Update()
 			Disconnect();
 		}
 	}
-	else if(State() == IClient::STATE_ONLINE && m_RecivedSnapshots >= 3)
+	else if(State() == IClient::STATE_ONLINE && m_ReceivedSnapshots >= 3)
 	{
 		// switch snapshot
 		int Repredict = 0;
@@ -1775,6 +1825,7 @@ void CClient::RegisterInterfaces()
 	Kernel()->RegisterInterface(static_cast<IDemoPlayer*>(&m_DemoPlayer));
 	Kernel()->RegisterInterface(static_cast<IServerBrowser*>(&m_ServerBrowser));
 	Kernel()->RegisterInterface(static_cast<IFriends*>(&m_Friends));
+	Kernel()->RegisterInterface(static_cast<IBlacklist*>(&m_Blacklist));
 }
 
 void CClient::InitInterfaces()
@@ -1793,6 +1844,7 @@ void CClient::InitInterfaces()
 	//
 	m_ServerBrowser.Init(&m_ContactClient, m_pGameClient->NetVersion());
 	m_Friends.Init();
+	m_Blacklist.Init();
 }
 
 bool CClient::LimitFps()
@@ -1982,7 +2034,6 @@ void CClient::Run()
 		// handle pending connects
 		if(m_aCmdConnect[0])
 		{
-			str_copy(g_Config.m_UiServerAddress, m_aCmdConnect, sizeof(g_Config.m_UiServerAddress));
 			Connect(m_aCmdConnect);
 			m_aCmdConnect[0] = 0;
 		}
@@ -2206,6 +2257,15 @@ void CClient::AutoScreenshot_Start()
 	}
 }
 
+void CClient::AutoStatScreenshot_Start()
+{
+	if(g_Config.m_ClAutoStatScreenshot)
+	{
+		Graphics()->TakeScreenshot("auto/stat");
+		m_AutoStatScreenshotRecycle = true;
+	}
+}
+
 void CClient::AutoScreenshot_Cleanup()
 {
 	if(m_AutoScreenshotRecycle)
@@ -2217,6 +2277,16 @@ void CClient::AutoScreenshot_Cleanup()
 			AutoScreens.Init(Storage(), "screenshots/auto", "autoscreen", ".png", g_Config.m_ClAutoScreenshotMax);
 		}
 		m_AutoScreenshotRecycle = false;
+	}
+	if(m_AutoStatScreenshotRecycle)
+	{
+		if(g_Config.m_ClAutoScreenshotMax)
+		{
+			// clean up auto taken stat screens
+			CFileCollection AutoScreens;
+			AutoScreens.Init(Storage(), "screenshots/auto", "stat", ".png", g_Config.m_ClAutoScreenshotMax);
+		}
+		m_AutoStatScreenshotRecycle = false;
 	}
 }
 
@@ -2496,6 +2566,13 @@ void CClient::ConnectOnStart(const char *pAddress)
 	str_copy(m_aCmdConnect, pAddress, sizeof(m_aCmdConnect));
 }
 
+void CClient::DoVersionSpecificActions()
+{
+	if(g_Config.m_ClLastVersionPlayed <= 0x0703)
+		str_copy(g_Config.m_ClMenuMap, "winter", sizeof(g_Config.m_ClMenuMap));
+	g_Config.m_ClLastVersionPlayed = CLIENT_VERSION;
+}
+
 /*
 	Server Time
 	Client Mirror Time
@@ -2605,7 +2682,8 @@ int main(int argc, const char **argv) // ignore_convention
 	if(!UseDefaultConfig)
 	{
 		// execute config file
-		pConsole->ExecuteFile("settings.cfg");
+		if(!pConsole->ExecuteFile(SETTINGS_FILENAME ".cfg"))
+			pConsole->ExecuteFile("settings.cfg"); // fallback to legacy naming scheme
 
 		// execute autoexec file
 		pConsole->ExecuteFile("autoexec.cfg");
@@ -2642,6 +2720,8 @@ int main(int argc, const char **argv) // ignore_convention
 	else if(!QuickEditMode)
 		dbg_console_init();
 #endif
+
+	pClient->DoVersionSpecificActions();
 
 	// restore empty config strings to their defaults
 	pConfig->RestoreStrings();

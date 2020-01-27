@@ -286,7 +286,7 @@ public:
 	char m_aName[128];
 	unsigned char m_aTileFlags[256];
 	class IAutoMapper *m_pAutoMapper;
-	bool operator<(const CEditorImage &Other) const { return str_comp(m_aName, Other.m_aName); }
+	bool operator<(const CEditorImage &Other) const { return str_comp(m_aName, Other.m_aName) < 0; }
 };
 
 class CEditorMap
@@ -671,8 +671,14 @@ public:
 	int m_FileDialogFileType;
 	float m_FileDialogScrollValue;
 	int m_FilesSelectedIndex;
+	char m_aFileDialogFilterString[64];
 	char m_FileDialogNewFolderName[64];
 	char m_FileDialogErrString[64];
+	float m_FilesSearchBoxID;
+	IGraphics::CTextureHandle m_FilePreviewImage;
+	bool m_PreviewImageIsLoaded;
+	CImageInfo m_FilePreviewImageInfo;
+
 
 	struct CFilelistItem
 	{
@@ -730,7 +736,7 @@ public:
 	int m_SelectedPoints;
 	int m_SelectedEnvelope;
 	int m_SelectedEnvelopePoint;
-    int m_SelectedQuadEnvelope;
+	int m_SelectedQuadEnvelope;
 	int m_SelectedImage;
 	
 	vec4 m_SelectedColor;
@@ -744,6 +750,7 @@ public:
 
 	CLayerGroup m_Brush;
 	CLayerTiles m_TilesetPicker;
+	CLayerQuads m_QuadsetPicker;
 
 	static const void *ms_pUiGotContext;
 
