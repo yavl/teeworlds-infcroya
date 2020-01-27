@@ -740,5 +740,8 @@ void CGameControllerMOD::SetLanguageByCountry(int Country, int ClientID)
 	case 446: //Macau
 		// set to chinese
 		break;
+	default:
+		players[ClientID]->SetLanguage("english");
+		break;
 	}
 }
