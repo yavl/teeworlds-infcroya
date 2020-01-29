@@ -1629,7 +1629,20 @@ set(GAME_GENERATED_SERVER
   src/generated/server_data.cpp
   src/generated/server_data.h
 )
-set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
+file(GLOB INFCROYA
+  src/infcroya/*.cpp
+  src/infcroya/*.h
+  src/infcroya/classes/*.cpp
+  src/infcroya/classes/*.h
+  src/infcroya/entities/*.cpp
+  src/infcroya/entities/*.h
+  src/infcroya/fmt/*.h
+  src/infcroya/localization/*.cpp
+  src/infcroya/localization/*.h
+  src/infcroya/lualoader/lualoader.cpp
+  src/infcroya/lualoader/lualoader.h
+)
+set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER} ${INFCROYA})
 if(TARGET_OS STREQUAL "windows")
   set(SERVER_ICON "other/icons/${SERVER_EXECUTABLE}.rc")
 else()
