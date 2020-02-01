@@ -1941,7 +1941,7 @@ int main(int argc, const char **argv) // ignore_convention
 	IConfig *pConfig = CreateConfig();
 
 	// INFCROYA BEGIN ------------------------------------------------------------
-	g_Localization.Load("translations.json", pStorage, pConsole);
+	Localization::getInstance().load("translations.json");
 	// INFCROYA END ------------------------------------------------------------//
 
 	pServer->InitRegister(&pServer->m_NetServer, pEngineMasterServer, pConsole);

@@ -401,7 +401,7 @@ function BuildServer(settings, family, platform)
 	
 	local infcroya = Compile(settings, Collect("src/infcroya/*.cpp", "src/infcroya/classes/*.cpp")) -- INFCROYA RELATED
 	local infcroya_entities = Compile(settings, Collect("src/infcroya/entities/*.cpp")) -- INFCROYA RELATED
-	local localization = Compile(settings, Collect("src/infcroya/localization/*.cpp", "src/infcroya/localization/json-parses/*.c")) -- INFCROYA RELATED
+	local localization = Compile(settings, Collect("src/infcroya/localization/*.cpp")) -- INFCROYA RELATED
 	local lualoader = Compile(settings, Collect("src/infcroya/lualoader/*.cpp")) -- INFCROYA RELATED
 	if config.geolocation.value then
 		geolocation = Compile(settings, Collect("src/infcroya/geolocation/*.cpp", "src/infcroya/geolocation/GeoLite2PP/*.cpp")) -- INFCROYA RELATED

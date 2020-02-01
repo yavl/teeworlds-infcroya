@@ -359,7 +359,7 @@ void CroyaPlayer::TurnIntoPrevZombieClass()
 {
 	int PrevClass = GetClassNum() - 1;
 	int LastClass = Class::ZOMBIE_CLASS_END - 1;
-	bool NotInRange = !(PrevClass > ZOMBIE_CLASS_START && PrevClass < ZOMBIE_CLASS_END);
+	bool NotInRange = !(PrevClass > Class::ZOMBIE_CLASS_START && PrevClass < Class::ZOMBIE_CLASS_END);
 
 	if (PrevClass == Class::ZOMBIE_CLASS_START || NotInRange)
 		PrevClass = LastClass;
@@ -481,5 +481,5 @@ void CroyaPlayer::SetClass(IClass* pClass, bool DrawPurpleThing)
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "%s", m_pClass->GetName().c_str());
-	m_pGameServer->SendBroadcast(Localize(aBuf, GetLanguage()), m_pPlayer->GetCID());
+	m_pGameServer->SendBroadcast(localize(aBuf, GetLanguage()).c_str(), m_pPlayer->GetCID());
 }

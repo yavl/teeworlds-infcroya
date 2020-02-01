@@ -1,61 +1,21 @@
-/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
-/* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#ifndef GAME_LOCALIZATION_H
-#define GAME_LOCALIZATION_H
-#include <base/tl/string.h>
-#include <base/tl/sorted_array.h>
+#pragma once
 
-const char* Localize(const char* pStr, const char* pContext = "");
+#include <string>
+#include "json_fwd.hpp"
 
-class CLocalizationDatabase
-{
-	class CString
-	{
-	public:
-		unsigned m_Hash;
-		unsigned m_ContextHash;
-
-		// TODO: do this as an const char * and put everything on a incremental heap
-		string m_Replacement;
-
-		bool operator <(const CString &Other) const { return m_Hash < Other.m_Hash; }
-		bool operator <=(const CString &Other) const { return m_Hash <= Other.m_Hash; }
-		bool operator ==(const CString &Other) const { return m_Hash == Other.m_Hash; }
-	};
-
-	sorted_array<CString> m_Strings;
-	int m_VersionCounter;
-	int m_CurrentVersion;
-
+class Localization {
 public:
-	CLocalizationDatabase();
-
-	bool Load(const char *pFilename, class IStorage *pStorage, class IConsole *pConsole);
-
-	int Version() const { return m_CurrentVersion; }
-
-	void AddString(const char *pOrgStr, const char *pNewStr, const char *pContext);
-	const char *FindString(unsigned Hash, unsigned ContextHash) const;
+	static Localization& getInstance();
+	void load(const std::string& filepath);
+	std::string localize(const std::string& text, const std::string& language);
+private:
+	Localization() = default;
+	Localization(const Localization&) = delete;
+	void operator=(const Localization&) = delete;
+	
+	std::unique_ptr<nlohmann::json> json;
 };
 
-extern CLocalizationDatabase g_Localization;
-
-class CLocConstString
-{
-	const char *m_pDefaultStr;
-	const char *m_pCurrentStr;
-	unsigned m_Hash;
-	unsigned m_ContextHash;
-	int m_Version;
-public:
-	CLocConstString(const char *pStr, const char *pContext="");
-	void Reload();
-
-	inline operator const char *()
-	{
-		if(m_Version != g_Localization.Version())
-			Reload();
-		return m_pCurrentStr;
-	}
-};
-#endif
+inline std::string localize(const std::string& text, const std::string& language) {
+	return Localization::getInstance().localize(text, language);
+}

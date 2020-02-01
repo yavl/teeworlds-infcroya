@@ -178,7 +178,7 @@ void CGameControllerMOD::Tick()
 			if (!each->GetCroyaPlayer())
 				continue;
 			char aBuf[256];
-			str_format(aBuf, sizeof(aBuf), Localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()), Seconds);
+			str_format(aBuf, sizeof(aBuf), localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()).c_str(), Seconds);
 			GameServer()->SendChatTarget(each->GetCID(), aBuf);
 		}
 		OnRoundEnd();
@@ -302,11 +302,11 @@ void CGameControllerMOD::Tick()
 						continue;
 
 					char aBuf[256];
-					str_format(aBuf, sizeof(aBuf), Localize("%d humans won the round", each->GetCroyaPlayer()->GetLanguage()), NumHumans);
+					str_format(aBuf, sizeof(aBuf), localize("%d humans won the round", each->GetCroyaPlayer()->GetLanguage()).c_str(), NumHumans);
 					GameServer()->SendChatTarget(each->GetCID(), aBuf);
 					if (each->GetCroyaPlayer()->IsHuman())
 					{
-						GameServer()->SendChatTarget(each->GetCID(), Localize("You have survived, +5 points", each->GetCroyaPlayer()->GetLanguage()));
+						GameServer()->SendChatTarget(each->GetCID(), localize("You have survived, +5 points", each->GetCroyaPlayer()->GetLanguage()).c_str());
 						each->m_Score += 5;
 					}
 				}
@@ -320,7 +320,7 @@ void CGameControllerMOD::Tick()
 					if (!each->GetCroyaPlayer())
 						continue;
 					char aBuf[256];
-					str_format(aBuf, sizeof(aBuf), Localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()), Seconds);
+					str_format(aBuf, sizeof(aBuf), localize("Infected won the round in %d seconds", each->GetCroyaPlayer()->GetLanguage()).c_str(), Seconds);
 					GameServer()->SendChatTarget(each->GetCID(), aBuf);
 				}
 			}

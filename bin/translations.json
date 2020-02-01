@@ -1,566 +1,566 @@
 {
-"translated strings": [
-	{
-		"context": "russian",
-		"or": "Random choice",
-		"tr": "Случайный выбор"
-	},
-	{
-		"context": "russian",
-		"or": "Biologist",
-		"tr": "Биолог"
-	},
-	{
-		"context": "russian",
-		"or": "Smoker",
-		"tr": "Курильщик"
-	},
-	{
-		"context": "russian",
-		"or": "Medic",
-		"tr": "Врач"
-	},
-	{
-		"context": "russian",
-		"or": "Engineer",
-		"tr": "Инженер"
-	},
-	{
-		"context": "russian",
-		"or": "Soldier",
-		"tr": "Солдат"
-	},
-	{
-		"context": "russian",
-		"or": "Scientist",
-		"tr": "Ученый"
-	},
-	{
-		"context": "russian",
-		"or": "Mercenary",
-		"tr": "Наемник"
-	},
-	{
-		"context": "russian",
-		"or": "Boomer",
-		"tr": "Взрывун"
-	},
-	{
-		"context": "russian",
-		"or": "Hunter",
-		"tr": "Охотник"
-	},
-	{
-		"context": "russian",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Зараженные выиграли раунд за %d секунд"
-	},
-	{
-		"context": "russian",
-		"or": "%d humans won the round",
-		"tr": "%d выживших людей"
-	},
-	{
-		"context": "russian",
-		"or": "You have survived, +5 points",
-		"tr": "Вы выжили, +5 очков"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "german",
-		"or": "Random choice",
-		"tr": "Zufällige Auswahl"
-	},
-	{
-		"context": "german",
-		"or": "Biologist",
-		"tr": "Lebenskundler"
-	},
-	{
-		"context": "german",
-		"or": "Smoker",
-		"tr": "Raucher"
-	},
-	{
-		"context": "german",
-		"or": "Medic",
-		"tr": "Sanitäter"
-	},
-	{
-		"context": "german",
-		"or": "Engineer",
-		"tr": "Ingenieur"
-	},
-	{
-		"context": "german",
-		"or": "Soldier",
-		"tr": "Soldat"
-	},
-	{
-		"context": "german",
-		"or": "Scientist",
-		"tr": "Wissenschaftler"
-	},
-	{
-		"context": "german",
-		"or": "Mercenary",
-		"tr": "Söldner"
-	},
-	{
-		"context": "german",
-		"or": "Boomer",
-		"tr": "Bomber"
-	},
-	{
-		"context": "german",
-		"or": "Hunter",
-		"tr": "Jäger"
-	},
-	{
-		"context": "german",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Die Erkrankten haben die Runde in %d Sekunden gewonnen"
-	},
-	{
-		"context": "german",
-		"or": "%d humans won the round",
-		"tr": "%d Überlebende haben die Runde gewonnen."
-	},
-	{
-		"context": "german",
-		"or": "You have survived, +5 points",
-		"tr": "Du hast überlebt, +5 Punkte"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "ukrainian",
-		"or": "Random choice",
-		"tr": "Випадковий вибір"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Biologist",
-		"tr": "Біолог"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Smoker",
-		"tr": "Курець"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Medic",
-		"tr": "Лікар"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Engineer",
-		"tr": "Інженер"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Soldier",
-		"tr": "Солдат"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Scientist",
-		"tr": "Вчений"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Mercenary",
-		"tr": "Найманець"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Boomer",
-		"tr": "Вибуховий"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Hunter",
-		"tr": "Мисливець"
-	},
-	{
-		"context": "ukrainian",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Заражені виграли раунд за %d секунд"
-	},
-	{
-		"context": "ukrainian",
-		"or": "%d humans won the round",
-		"tr": "%d людей виграло"
-	},
-	{
-		"context": "ukrainian",
-		"or": "You have survived, +5 points",
-		"tr": "Ти вижив, +5 очок"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "french",
-		"or": "Random choice",
-		"tr": "Choix aléatoire"
-	},
-	{
-		"context": "french",
-		"or": "Biologist",
-		"tr": "Biologiste"
-	},
-	{
-		"context": "french",
-		"or": "Smoker",
-		"tr": "Smoker"
-	},
-	{
-		"context": "french",
-		"or": "Medic",
-		"tr": "Médecin"
-	},
-	{
-		"context": "french",
-		"or": "Engineer",
-		"tr": "Ingénieure"
-	},
-	{
-		"context": "french",
-		"or": "Soldier",
-		"tr": "Soldate"
-	},
-	{
-		"context": "french",
-		"or": "Scientist",
-		"tr": "Scientifique"
-	},
-	{
-		"context": "french",
-		"or": "Mercenary",
-		"tr": "Mercenaire"
-	},
-	{
-		"context": "french",
-		"or": "Boomer",
-		"tr": "Boomer"
-	},
-	{
-		"context": "french",
-		"or": "Hunter",
-		"tr": "Chasseur"
-	},
-	{
-		"context": "french",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Les infectées ont gagné la manche en %d secondes"
-	},
-	{
-		"context": "french",
-		"or": "%d humans won the round",
-		"tr": "%d humaines ont gagné la manche"
-	},
-	{
-		"context": "french",
-		"or": "You have survived, +5 points",
-		"tr": "Vous avez survécu, +5 points"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "spanish",
-		"or": "Random choice",
-		"tr": "Elección aleatoria"
-	},
-	{
-		"context": "spanish",
-		"or": "Biologist",
-		"tr": "Biólogo"
-	},
-	{
-		"context": "spanish",
-		"or": "Smoker",
-		"tr": "Smoker"
-	},
-	{
-		"context": "spanish",
-		"or": "Medic",
-		"tr": "Médico"
-	},
-	{
-		"context": "spanish",
-		"or": "Engineer",
-		"tr": "Ingeniero"
-	},
-	{
-		"context": "spanish",
-		"or": "Soldier",
-		"tr": "Soldado"
-	},
-	{
-		"context": "spanish",
-		"or": "Scientist",
-		"tr": "Científico"
-	},
-	{
-		"context": "spanish",
-		"or": "Mercenary",
-		"tr": "Mercenario"
-	},
-	{
-		"context": "spanish",
-		"or": "Boomer",
-		"tr": "Boomer"
-	},
-	{
-		"context": "spanish",
-		"or": "Hunter",
-		"tr": "Cazador"
-	},
-	{
-		"context": "spanish",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Los infectados han ganado la ronda en %d segundos"
-	},
-	{
-		"context": "spanish",
-		"or": "%d humans won the round",
-		"tr": "%d humanos han ganado la ronda"
-	},
-	{
-		"context": "spanish",
-		"or": "You have survived, +5 points",
-		"tr": "Has sobrevivido, +5 puntos"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "polish",
-		"or": "Random choice",
-		"tr": "Przypadkowy wybór"
-	},
-	{
-		"context": "polish",
-		"or": "Biologist",
-		"tr": "Biolog"
-	},
-	{
-		"context": "polish",
-		"or": "Smoker",
-		"tr": "Chwytacz"
-	},
-	{
-		"context": "polish",
-		"or": "Medic",
-		"tr": "Lekarz"
-	},
-	{
-		"context": "polish",
-		"or": "Engineer",
-		"tr": "Inżynier"
-	},
-	{
-		"context": "polish",
-		"or": "Soldier",
-		"tr": "Żołnierz"
-	},
-	{
-		"context": "polish",
-		"or": "Scientist",
-		"tr": "Naukowiec"
-	},
-	{
-		"context": "polish",
-		"or": "Mercenary",
-		"tr": "Najemnik"
-	},
-	{
-		"context": "polish",
-		"or": "Boomer",
-		"tr": "Wybuchacz"
-	},
-	{
-		"context": "polish",
-		"or": "Hunter",
-		"tr": "Łowca"
-	},
-	{
-		"context": "polish",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Zainfekowani wygrali grę w %d sekund"
-	},
-	{
-		"context": "polish",
-		"or": "%d humans won the round",
-		"tr": "%d Ludzie wygrali rundę"
-	},
-	{
-		"context": "polish",
-		"or": "You have survived, +5 points",
-		"tr": "Przetrwałeś, +5 points"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "hungarian",
-		"or": "Random choice",
-		"tr": "Véletlenszerű"
-	},
-	{
-		"context": "hungarian",
-		"or": "Biologist",
-		"tr": "Biológus"
-	},
-	{
-		"context": "hungarian",
-		"or": "Smoker",
-		"tr": "Füstös"
-	},
-	{
-		"context": "hungarian",
-		"or": "Medic",
-		"tr": "Orvos"
-	},
-	{
-		"context": "hungarian",
-		"or": "Engineer",
-		"tr": "Mérnök"
-	},
-	{
-		"context": "hungarian",
-		"or": "Soldier",
-		"tr": "Közkatona"
-	},
-	{
-		"context": "hungarian",
-		"or": "Scientist",
-		"tr": "Tudós"
-	},
-	{
-		"context": "hungarian",
-		"or": "Mercenary",
-		"tr": "Zsoldos"
-	},
-	{
-		"context": "hungarian",
-		"or": "Boomer",
-		"tr": "Bomba"
-	},
-	{
-		"context": "hungarian",
-		"or": "Hunter",
-		"tr": "Vadász"
-	},
-	{
-		"context": "hungarian",
-		"or": "Infected won the round in %d seconds",
-		"tr": "A zombik megnyerték a játékot %d másodperc"
-	},
-	{
-		"context": "hungarian",
-		"or": "%d humans won the round",
-		"tr": "%d ember nyerte meg játékot"
-	},
-	{
-		"context": "hungarian",
-		"or": "You have survived, +5 points",
-		"tr": "Túlélted az inváziót, +5 pont"
-	},
-	
-	
-	
-	
-	
-	
-	{
-		"context": "turkish",
-		"or": "Random choice",
-		"tr": "Rastgele seçim"
-	},
-	{
-		"context": "turkish",
-		"or": "Biologist",
-		"tr": "Biyolog"
-	},
-	{
-		"context": "turkish",
-		"or": "Smoker",
-		"tr": "Dumancı"
-	},
-	{
-		"context": "turkish",
-		"or": "Medic",
-		"tr": "Doktor"
-	},
-	{
-		"context": "turkish",
-		"or": "Engineer",
-		"tr": "Mühendis"
-	},
-	{
-		"context": "turkish",
-		"or": "Soldier",
-		"tr": "Asker"
-	},
-	{
-		"context": "turkish",
-		"or": "Scientist",
-		"tr": "Bilim adamı"
-	},
-	{
-		"context": "turkish",
-		"or": "Mercenary",
-		"tr": "Paralı asker"
-	},
-	{
-		"context": "turkish",
-		"or": "Boomer",
-		"tr": "Patlayıcı"
-	},
-	{
-		"context": "turkish",
-		"or": "Hunter",
-		"tr": "Avcı"
-	},
-	{
-		"context": "turkish",
-		"or": "Infected won the round in %d seconds",
-		"tr": "Zombiler bu eli %d sürede kazandılar saniye"
-	},
-	{
-		"context": "turkish",
-		"or": "%d humans won the round",
-		"tr": "%d insan bu eli kazandı"
-	},
-	{
-		"context": "turkish",
-		"or": "You have survived, +5 points",
-		"tr": "Hayatta kaldınız, +5 puan"
-	},
-]
+	"translated strings": [
+		{
+			"context": "russian",
+			"or": "Random choice",
+			"tr": "Случайный выбор"
+		},
+		{
+			"context": "russian",
+			"or": "Biologist",
+			"tr": "Биолог"
+		},
+		{
+			"context": "russian",
+			"or": "Smoker",
+			"tr": "Курильщик"
+		},
+		{
+			"context": "russian",
+			"or": "Medic",
+			"tr": "Врач"
+		},
+		{
+			"context": "russian",
+			"or": "Engineer",
+			"tr": "Инженер"
+		},
+		{
+			"context": "russian",
+			"or": "Soldier",
+			"tr": "Солдат"
+		},
+		{
+			"context": "russian",
+			"or": "Scientist",
+			"tr": "Ученый"
+		},
+		{
+			"context": "russian",
+			"or": "Mercenary",
+			"tr": "Наемник"
+		},
+		{
+			"context": "russian",
+			"or": "Boomer",
+			"tr": "Взрывун"
+		},
+		{
+			"context": "russian",
+			"or": "Hunter",
+			"tr": "Охотник"
+		},
+		{
+			"context": "russian",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Зараженные выиграли раунд за %d секунд"
+		},
+		{
+			"context": "russian",
+			"or": "%d humans won the round",
+			"tr": "%d выживших людей"
+		},
+		{
+			"context": "russian",
+			"or": "You have survived, +5 points",
+			"tr": "Вы выжили, +5 очков"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "german",
+			"or": "Random choice",
+			"tr": "Zufällige Auswahl"
+		},
+		{
+			"context": "german",
+			"or": "Biologist",
+			"tr": "Lebenskundler"
+		},
+		{
+			"context": "german",
+			"or": "Smoker",
+			"tr": "Raucher"
+		},
+		{
+			"context": "german",
+			"or": "Medic",
+			"tr": "Sanitäter"
+		},
+		{
+			"context": "german",
+			"or": "Engineer",
+			"tr": "Ingenieur"
+		},
+		{
+			"context": "german",
+			"or": "Soldier",
+			"tr": "Soldat"
+		},
+		{
+			"context": "german",
+			"or": "Scientist",
+			"tr": "Wissenschaftler"
+		},
+		{
+			"context": "german",
+			"or": "Mercenary",
+			"tr": "Söldner"
+		},
+		{
+			"context": "german",
+			"or": "Boomer",
+			"tr": "Bomber"
+		},
+		{
+			"context": "german",
+			"or": "Hunter",
+			"tr": "Jäger"
+		},
+		{
+			"context": "german",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Die Erkrankten haben die Runde in %d Sekunden gewonnen"
+		},
+		{
+			"context": "german",
+			"or": "%d humans won the round",
+			"tr": "%d Überlebende haben die Runde gewonnen."
+		},
+		{
+			"context": "german",
+			"or": "You have survived, +5 points",
+			"tr": "Du hast überlebt, +5 Punkte"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "ukrainian",
+			"or": "Random choice",
+			"tr": "Випадковий вибір"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Biologist",
+			"tr": "Біолог"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Smoker",
+			"tr": "Курець"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Medic",
+			"tr": "Лікар"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Engineer",
+			"tr": "Інженер"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Soldier",
+			"tr": "Солдат"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Scientist",
+			"tr": "Вчений"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Mercenary",
+			"tr": "Найманець"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Boomer",
+			"tr": "Вибуховий"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Hunter",
+			"tr": "Мисливець"
+		},
+		{
+			"context": "ukrainian",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Заражені виграли раунд за %d секунд"
+		},
+		{
+			"context": "ukrainian",
+			"or": "%d humans won the round",
+			"tr": "%d людей виграло"
+		},
+		{
+			"context": "ukrainian",
+			"or": "You have survived, +5 points",
+			"tr": "Ти вижив, +5 очок"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "french",
+			"or": "Random choice",
+			"tr": "Choix aléatoire"
+		},
+		{
+			"context": "french",
+			"or": "Biologist",
+			"tr": "Biologiste"
+		},
+		{
+			"context": "french",
+			"or": "Smoker",
+			"tr": "Smoker"
+		},
+		{
+			"context": "french",
+			"or": "Medic",
+			"tr": "Médecin"
+		},
+		{
+			"context": "french",
+			"or": "Engineer",
+			"tr": "Ingénieure"
+		},
+		{
+			"context": "french",
+			"or": "Soldier",
+			"tr": "Soldate"
+		},
+		{
+			"context": "french",
+			"or": "Scientist",
+			"tr": "Scientifique"
+		},
+		{
+			"context": "french",
+			"or": "Mercenary",
+			"tr": "Mercenaire"
+		},
+		{
+			"context": "french",
+			"or": "Boomer",
+			"tr": "Boomer"
+		},
+		{
+			"context": "french",
+			"or": "Hunter",
+			"tr": "Chasseur"
+		},
+		{
+			"context": "french",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Les infectées ont gagné la manche en %d secondes"
+		},
+		{
+			"context": "french",
+			"or": "%d humans won the round",
+			"tr": "%d humaines ont gagné la manche"
+		},
+		{
+			"context": "french",
+			"or": "You have survived, +5 points",
+			"tr": "Vous avez survécu, +5 points"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "spanish",
+			"or": "Random choice",
+			"tr": "Elección aleatoria"
+		},
+		{
+			"context": "spanish",
+			"or": "Biologist",
+			"tr": "Biólogo"
+		},
+		{
+			"context": "spanish",
+			"or": "Smoker",
+			"tr": "Smoker"
+		},
+		{
+			"context": "spanish",
+			"or": "Medic",
+			"tr": "Médico"
+		},
+		{
+			"context": "spanish",
+			"or": "Engineer",
+			"tr": "Ingeniero"
+		},
+		{
+			"context": "spanish",
+			"or": "Soldier",
+			"tr": "Soldado"
+		},
+		{
+			"context": "spanish",
+			"or": "Scientist",
+			"tr": "Científico"
+		},
+		{
+			"context": "spanish",
+			"or": "Mercenary",
+			"tr": "Mercenario"
+		},
+		{
+			"context": "spanish",
+			"or": "Boomer",
+			"tr": "Boomer"
+		},
+		{
+			"context": "spanish",
+			"or": "Hunter",
+			"tr": "Cazador"
+		},
+		{
+			"context": "spanish",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Los infectados han ganado la ronda en %d segundos"
+		},
+		{
+			"context": "spanish",
+			"or": "%d humans won the round",
+			"tr": "%d humanos han ganado la ronda"
+		},
+		{
+			"context": "spanish",
+			"or": "You have survived, +5 points",
+			"tr": "Has sobrevivido, +5 puntos"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "polish",
+			"or": "Random choice",
+			"tr": "Przypadkowy wybór"
+		},
+		{
+			"context": "polish",
+			"or": "Biologist",
+			"tr": "Biolog"
+		},
+		{
+			"context": "polish",
+			"or": "Smoker",
+			"tr": "Chwytacz"
+		},
+		{
+			"context": "polish",
+			"or": "Medic",
+			"tr": "Lekarz"
+		},
+		{
+			"context": "polish",
+			"or": "Engineer",
+			"tr": "Inżynier"
+		},
+		{
+			"context": "polish",
+			"or": "Soldier",
+			"tr": "Żołnierz"
+		},
+		{
+			"context": "polish",
+			"or": "Scientist",
+			"tr": "Naukowiec"
+		},
+		{
+			"context": "polish",
+			"or": "Mercenary",
+			"tr": "Najemnik"
+		},
+		{
+			"context": "polish",
+			"or": "Boomer",
+			"tr": "Wybuchacz"
+		},
+		{
+			"context": "polish",
+			"or": "Hunter",
+			"tr": "Łowca"
+		},
+		{
+			"context": "polish",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Zainfekowani wygrali grę w %d sekund"
+		},
+		{
+			"context": "polish",
+			"or": "%d humans won the round",
+			"tr": "%d Ludzie wygrali rundę"
+		},
+		{
+			"context": "polish",
+			"or": "You have survived, +5 points",
+			"tr": "Przetrwałeś, +5 points"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "hungarian",
+			"or": "Random choice",
+			"tr": "Véletlenszerű"
+		},
+		{
+			"context": "hungarian",
+			"or": "Biologist",
+			"tr": "Biológus"
+		},
+		{
+			"context": "hungarian",
+			"or": "Smoker",
+			"tr": "Füstös"
+		},
+		{
+			"context": "hungarian",
+			"or": "Medic",
+			"tr": "Orvos"
+		},
+		{
+			"context": "hungarian",
+			"or": "Engineer",
+			"tr": "Mérnök"
+		},
+		{
+			"context": "hungarian",
+			"or": "Soldier",
+			"tr": "Közkatona"
+		},
+		{
+			"context": "hungarian",
+			"or": "Scientist",
+			"tr": "Tudós"
+		},
+		{
+			"context": "hungarian",
+			"or": "Mercenary",
+			"tr": "Zsoldos"
+		},
+		{
+			"context": "hungarian",
+			"or": "Boomer",
+			"tr": "Bomba"
+		},
+		{
+			"context": "hungarian",
+			"or": "Hunter",
+			"tr": "Vadász"
+		},
+		{
+			"context": "hungarian",
+			"or": "Infected won the round in %d seconds",
+			"tr": "A zombik megnyerték a játékot %d másodperc"
+		},
+		{
+			"context": "hungarian",
+			"or": "%d humans won the round",
+			"tr": "%d ember nyerte meg játékot"
+		},
+		{
+			"context": "hungarian",
+			"or": "You have survived, +5 points",
+			"tr": "Túlélted az inváziót, +5 pont"
+		},
+		
+		
+		
+		
+		
+		
+		{
+			"context": "turkish",
+			"or": "Random choice",
+			"tr": "Rastgele seçim"
+		},
+		{
+			"context": "turkish",
+			"or": "Biologist",
+			"tr": "Biyolog"
+		},
+		{
+			"context": "turkish",
+			"or": "Smoker",
+			"tr": "Dumancı"
+		},
+		{
+			"context": "turkish",
+			"or": "Medic",
+			"tr": "Doktor"
+		},
+		{
+			"context": "turkish",
+			"or": "Engineer",
+			"tr": "Mühendis"
+		},
+		{
+			"context": "turkish",
+			"or": "Soldier",
+			"tr": "Asker"
+		},
+		{
+			"context": "turkish",
+			"or": "Scientist",
+			"tr": "Bilim adamı"
+		},
+		{
+			"context": "turkish",
+			"or": "Mercenary",
+			"tr": "Paralı asker"
+		},
+		{
+			"context": "turkish",
+			"or": "Boomer",
+			"tr": "Patlayıcı"
+		},
+		{
+			"context": "turkish",
+			"or": "Hunter",
+			"tr": "Avcı"
+		},
+		{
+			"context": "turkish",
+			"or": "Infected won the round in %d seconds",
+			"tr": "Zombiler bu eli %d sürede kazandılar saniye"
+		},
+		{
+			"context": "turkish",
+			"or": "%d humans won the round",
+			"tr": "%d insan bu eli kazandı"
+		},
+		{
+			"context": "turkish",
+			"or": "You have survived, +5 points",
+			"tr": "Hayatta kaldınız, +5 puan"
+		}
+	]
 }
